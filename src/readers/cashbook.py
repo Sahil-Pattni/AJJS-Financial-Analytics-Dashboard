@@ -20,18 +20,85 @@ class CashbookReader:
         only_this_year: bool = True,
     ):
         # Read JSON files
-        self.expense_categories = self.__read_categories_file(expense_categories)
-        self.income_categories = self.__read_categories_file(income_categories)
-        self.fixed_costs = self.__read_categories_file(fixed_costs)
+        self.__expense_categories = self.__read_categories_file(expense_categories)
+        self.__income_categories = self.__read_categories_file(income_categories)
+        self.__fixed_costs = self.__read_categories_file(fixed_costs)
 
         # Read sheets
         workbook = self.__read_workbook(filepath)
-        self.cashbook = self.__read_sheets(workbook)
+        self._mcb, self._qtr, self._cashbook = self.__read_sheets(workbook)
 
         # Restrict to this year
         if only_this_year:
             current_year = pd.Timestamp.now().year
-            self.cashbook = self.cashbook[self.cashbook["Date"].dt.year == current_year]
+            self._cashbook = self._cashbook[
+                self._cashbook["Date"].dt.year == current_year
+            ]
+            self._mcb = self._mcb[self._mcb["Date"].dt.year == current_year]
+            self._qtr = self._qtr[self._qtr["Date"].dt.year == current_year]
+
+        # Apply categories
+        self.__assign_categories(self._cashbook)
+        self.__assign_categories(self._mcb)
+        self.__assign_categories(self._qtr)
+
+        self._fixed_costs = self.__read_fixed_costs(self.__fixed_costs)
+
+        # Re-organize columns
+        col_structure = [
+            "Date",
+            "Details",
+            "Debit",
+            "Credit",
+            "Balance",
+            "Super-Category",
+            "Sub-Category",
+            "Cost Type",
+            "QTR",
+        ]
+        self._cashbook = self._cashbook[col_structure]
+        self._mcb = self._mcb[col_structure]
+        self._qtr = self._qtr[col_structure]
+
+    @property
+    def cashbook(self) -> pd.DataFrame:
+        """
+        Returns the cashbook DataFrame.
+
+        Returns:
+            pd.DataFrame: The cashbook DataFrame.
+        """
+        return self._cashbook
+
+    @property
+    def fixed_costs(self) -> pd.DataFrame:
+        """
+        Returns the fixed costs DataFrame.
+
+        Returns:
+            pd.DataFrame: The fixed costs DataFrame.
+        """
+        return self._fixed_costs
+
+    @property
+    def mcb(self) -> pd.DataFrame:
+        """
+        Returns the main cash book DataFrame.
+
+        Returns:
+            pd.DataFrame: The main cash book DataFrame.
+        """
+        return self._mcb
+
+    @property
+    def qtr(self) -> pd.DataFrame:
+        """
+        Returns the quarterly cash book DataFrame.
+
+        Returns:
+            pd.DataFrame: The quarterly cash book DataFrame.
+        """
+        return self._qtr
 
     def __read_sheets(self, workbook) -> pd.DataFrame:
         """
@@ -63,7 +130,7 @@ class CashbookReader:
 
         cashbook = pd.concat([mcb, qtr], ignore_index=True)
         cashbook.sort_index(inplace=True)
-        return cashbook
+        return mcb, qtr, cashbook
 
     def __read_categories_file(self, filepath):
         """
@@ -109,8 +176,8 @@ class CashbookReader:
 
         return df[pd.notna(df["Date"])]
 
-    def __assign_categories(self):
-        self.cashbook["Sub-Category"] = self.cashbook.apply(
+    def __assign_categories(self, book):
+        book["Sub-Category"] = book.apply(
             lambda row: self.__assign_subcategory(
                 row,
                 (
@@ -122,7 +189,7 @@ class CashbookReader:
             axis=1,
         )
 
-        self.cashbook["Super-Category"] = self.cashbook.apply(
+        book["Super-Category"] = book.apply(
             lambda row: self.__assign_supercategory(
                 row,
                 (
@@ -135,7 +202,7 @@ class CashbookReader:
         )
 
         # Apply cost type only on rows where Debit > 0
-        self.cashbook["Cost Type"] = self.cashbook.apply(
+        book["Cost Type"] = book.apply(
             lambda row: (
                 self.__assign_cost_type(row, (self.__expense_categories))
                 if row["Debit"] > 0
@@ -206,3 +273,13 @@ class CashbookReader:
                 if key == row["Sub-Category"]:
                     return vals["key"]
         return "Uncategorized"
+
+    def __read_fixed_costs(self, fixed_costs: str):
+        fc = pd.DataFrame.from_dict(
+            fixed_costs, orient="index", columns=["Super-Category", "Cost"]
+        )
+        fc.reset_index(inplace=True)
+        fc.rename(columns={"index": "Sub-Category", "Cost": "Debit"}, inplace=True)
+        fc["Cost Type"] = "FIXED"
+
+        return fc
