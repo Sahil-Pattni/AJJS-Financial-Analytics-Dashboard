@@ -1,11 +1,10 @@
+from dotenv import load_dotenv
 from typing import List
 import pandas as pd
-import numpy as np
 import msoffcrypto
 import json
-import io
 import os
-from dotenv import load_dotenv
+import io
 
 load_dotenv()
 
