@@ -304,7 +304,7 @@ class Plots:
 
         # ----- Plotting ----- #
         data = df[df.TransactionType == "SALE"].copy()
-        data["Month"] = data.DocDate.dt.month
+        data["Month"] = data.DocDate.dt.to_period("M").astype(str)
         data["Week"] = data.DocDate.dt.to_period("W")
         data = (
             data[data.MakingValue > 0]
@@ -324,6 +324,13 @@ class Plots:
             height=600,
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
         )
+
+        # Uncomment below to remove inside fill color
+
+        # fig.update_traces(
+        #     fillcolor="white",
+        #     line_width=2,
+        # )
 
         fig.update_layout(
             xaxis_title="Month",
