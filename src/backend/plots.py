@@ -18,6 +18,9 @@ class Color(Enum):
     GREEN1 = "#819A91"
     GREEN2 = "#A7C1A8"
     GREEN3 = "#D1D8BE"
+    OCEAN_BLUE = "#003049"
+    BLUE1 = "#415a77"
+    BLUE2 = "#778da9"
 
 
 class Plots:
@@ -203,12 +206,11 @@ class Plots:
             values="MakingValue",
             color="PurityCategory",
             color_discrete_map={
-                "18K": pastel[0],
+                "18K": Color.BLUE1.value,
                 "21K": pastel[1],
-                "22K": pastel[2],
+                "22K": Color.BLUE2.value,
                 "9K": pastel[4],
             },
-            title="Sales by Item Category and Purity",
             width=800,
             height=600,
         )
@@ -238,9 +240,9 @@ class Plots:
             color=sales.PurityCategory,
             custom_data=["PurityCategory"],
             color_discrete_map={
-                "18K": pastel[0],
+                "18K": Color.BLUE1.value,
                 "21K": pastel[1],
-                "22K": pastel[2],
+                "22K": Color.BLUE2.value,
                 "9K": pastel[4],
             },
             title="Monthly Sales by Purity",
@@ -256,7 +258,7 @@ class Plots:
             line_dash="dash",
             line_color=Color.BLACK.value,
             annotation_text=f"Average Income: {avg_making:,.2f} AED",
-            annotation_position="top left",
+            annotation_position="top right",
             annotation_font_color=Color.BLACK.value,
             opacity=0.2,
         )
@@ -286,6 +288,46 @@ class Plots:
 
         fig.update_traces(
             hovertemplate="<b>%{x}</b><br>Purity: %{customdata[0]}<br>Making Value: %{y:,.2f}<extra></extra>",
+        )
+
+        # Present chart
+        return fig
+
+    @staticmethod
+    def weekly_monthly_boxplot(df: pd.DataFrame) -> None:
+        """
+        Generates a boxplot of weekly making charges by month.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing sales data.
+        """
+
+        # ----- Plotting ----- #
+        data = df[df.TransactionType == "SALE"].copy()
+        data["Month"] = data.DocDate.dt.month
+        data["Week"] = data.DocDate.dt.to_period("W")
+        data = (
+            data[data.MakingValue > 0]
+            .groupby(["Month", "Week"])
+            .agg({"MakingValue": "sum"})
+            .reset_index()
+        )
+        data.columns = ["Month", "Week", "MakingValue"]
+
+        fig = px.box(
+            data,
+            x="Month",
+            y="MakingValue",
+            title="Weekly Making Charges by Month",
+            labels={"Month": "Month", "MakingValue": "Making Charges (AED)"},
+            width=800,
+            height=600,
+            color_discrete_sequence=[Color.OCEAN_BLUE.value],
+        )
+
+        fig.update_layout(
+            xaxis_title="Month",
+            yaxis_title="Making Charges (AED)",
         )
 
         # Present chart
