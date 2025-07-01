@@ -261,11 +261,27 @@ class Plots:
             opacity=0.2,
         )
 
+        base_ymax = 130000
+        base_ythresh = 100000
+        sales_max = (
+            sales.groupby(sales.Month).agg({"MakingValue": "sum"})["MakingValue"].max()
+            * 1.2
+        )
         fig.update_layout(
             xaxis_title="Month",
             yaxis_title="Making Charges (AED)",
             legend_title_text="Purity Category",
             xaxis=dict(tickformat="%b %Y"),
+            yaxis=dict(
+                range=[
+                    0,
+                    (
+                        max(base_ymax, sales_max)
+                        if sales_max > base_ythresh
+                        else sales_max
+                    ),
+                ],
+            ),
         )
 
         fig.update_traces(
