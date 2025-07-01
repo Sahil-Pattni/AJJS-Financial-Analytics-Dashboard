@@ -1,18 +1,21 @@
 import streamlit as st
 from streamlit import session_state as ss
 import pandas as pd
-
+from enum import Enum
 from src.backend.analytics import Analytics
 from src.backend.plots import Plots
+
+
+oz_to_gram = lambda x: x * (3.6725 / 31.1034768)
 
 st.title("Financial Analysis")
 
 # ----- OPTIONS ----- #
 toggle = st.sidebar.toggle("Convert Gold Gains to Cash", value=False)
 gold_rate = st.sidebar.number_input(
-    "Gold Rate (AED per gram)", min_value=0.0, value=390.0, step=1.0
+    "Gold Rate ($/ounce)", min_value=0.0, value=3348.66, step=1.0
 )
-kwargs = {"convert_gold": toggle, "gold_rate": gold_rate}
+kwargs = {"convert_gold": toggle, "gold_rate": oz_to_gram(gold_rate)}
 ignore_salaries = st.sidebar.toggle("Exclude Salaries", value=False)
 # ----- DATA ----- #
 fig = Plots.income_expenses_chart(
