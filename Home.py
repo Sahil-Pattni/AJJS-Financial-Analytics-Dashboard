@@ -1,9 +1,6 @@
-import io
-from typing import List
-import streamlit as st
 from streamlit import session_state as ss
-from src.readers.cashbook import CashbookReader
-from src.readers.wingold import WingoldReader
+import streamlit as st
+
 from utils import present_navigation
 import logging
 
@@ -13,6 +10,9 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",  # Restricts to seconds
     force=True,
 )
+
+# Wide
+st.set_page_config(layout="wide")
 
 if "redirected" not in ss:
     ss["redirected"] = False
