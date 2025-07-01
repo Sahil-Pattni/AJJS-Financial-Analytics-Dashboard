@@ -12,7 +12,7 @@ class Color(Enum):
 
     OLIVE_GREEN = "#A6B37D"
     DARK_GREY = "#393E46"
-    DARK_RED = "#CD5656"
+    DARK_RED = "#DA6C6C"
     RED = "#DD3E3E"
     BLACK = "#000000"
     GREEN1 = "#819A91"
@@ -110,7 +110,11 @@ class Plots:
             )
         )
 
-        ymax = max(monthly_data["Total Income"].max() * 1.3, 400000)
+        ymax = max(
+            (monthly_data["Total Income"].max() + monthly_data["GoldGains"].max())
+            * 1.3,
+            400000,
+        )
         ymin = min(monthly_data["Total Cost"].min() * 1.3, -330000)
 
         logging.info(f"Y-axis range set to: {ymin} to {ymax}")
@@ -177,6 +181,95 @@ class Plots:
             width=800,
             height=600,
             margin=dict(t=50, b=50, l=100, r=50),
+        )
+
+        # Present chart
+        return fig
+
+    @staticmethod
+    def sales_sunburst(sales: pd.DataFrame) -> None:
+        """
+        Generates a sunburst chart of the sales data.
+
+        Args:
+            sales (pd.DataFrame): DataFrame containing sales data.
+        """
+
+        # ----- Plotting ----- #
+        pastel = px.colors.qualitative.Pastel
+        fig = px.sunburst(
+            sales,
+            path=["PurityCategory", "ItemCategory"],
+            values="MakingValue",
+            color="PurityCategory",
+            color_discrete_map={
+                "18K": pastel[0],
+                "21K": pastel[1],
+                "22K": pastel[2],
+                "9K": pastel[4],
+            },
+            title="Sales by Item Category and Purity",
+            width=800,
+            height=600,
+        )
+
+        # Formatting
+        fig.update_traces(textinfo="label+percent entry", textfont_size=10)
+        fig.update_layout(margin=dict(t=50, l=25, r=25, b=25))
+
+        # Present chart
+        return fig
+
+    @staticmethod
+    def monthwise_sales_by_purity(sales: pd.DataFrame) -> None:
+        """
+        Generates a month-wise sales chart by purity using Streamlit.
+
+        Args:
+            df (pd.DataFrame): Sales DataFrame.
+        """
+
+        # ----- Plotting ----- #
+        pastel = px.colors.qualitative.Pastel
+        fig = px.bar(
+            sales,
+            x=sales.Month,
+            y=sales.MakingValue,
+            color=sales.PurityCategory,
+            custom_data=["PurityCategory"],
+            color_discrete_map={
+                "18K": pastel[0],
+                "21K": pastel[1],
+                "22K": pastel[2],
+                "9K": pastel[4],
+            },
+            title="Monthly Sales by Purity",
+            barmode="stack",
+            height=600,
+            width=800,
+        )
+        avg_making = (
+            sales.groupby(sales.Month).agg({"MakingValue": "sum"})["MakingValue"].mean()
+        )
+        fig.add_hline(
+            y=avg_making,
+            line_dash="dash",
+            line_color=Color.BLACK.value,
+            annotation_text=f"Average Income: {avg_making:,.2f} AED",
+            annotation_position="top left",
+            annotation_font_color=Color.BLACK.value,
+            opacity=0.2,
+        )
+
+        fig.update_layout(
+            xaxis_title="Month",
+            yaxis_title="Making Charges (AED)",
+            legend_title_text="Purity Category",
+            xaxis=dict(tickformat="%b %Y"),
+        )
+
+        fig.update_traces(
+            hovertemplate="<b>%{x}</b><br>Purity: %{customdata[0]}<br>Making Value: %{y:,.2f}<extra></extra>",
         )
 
         # Present chart

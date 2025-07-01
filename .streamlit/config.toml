@@ -1,0 +1,28 @@
+[theme]
+# Theme 1
+# primaryColor = "#112D4E"
+# backgroundColor = "#F9F7F7"
+# secondaryBackgroundColor = "#EEEEEE"
+# textColor = "#112D4E"
+
+# Theme 2: GitHub Dark Mode
+# primaryColor = "#2dba4e"
+# backgroundColor = "#24292e"
+# secondaryBackgroundColor = "#2b3137"
+# textColor = "#ffffff"
+
+# Theme 3: GitHub Light Mode
+primaryColor = "#2dba4e"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#fafbfc"
+textColor = "#24292e"
+
+
+[theme.sidebar]
+# Theme 2: GitHub Dark Mode
+# primaryColor = "#2dba4e"
+primaryColor = "#588157"
+backgroundColor = "#393E46"
+secondaryBackgroundColor = "#2b3137"
+textColor = "#ffffff"
+

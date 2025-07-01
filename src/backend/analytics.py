@@ -153,3 +153,42 @@ class Analytics:
         expenses.sort_values(by=["Cost Type", "Debit"], ascending=False, inplace=True)
 
         return expenses
+
+    @staticmethod
+    def monthly_sales_data(df: pd.DataFrame):
+        df = df.groupby(["Month", "PurityCategory"]).agg(
+            {"GrossWt": "sum", "PureWt": "sum", "MakingValue": "sum"}
+        )
+
+        df.reset_index(inplace=True)
+        df["Month"] = df["Month"].dt.to_timestamp()
+
+        return df
+
+    @staticmethod
+    def sales_item_sunburst_data(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Generate a DataFrame for sunburst chart data by item.
+
+        Args:
+            sales_df (pd.DataFrame): DataFrame containing sales data.
+
+        Returns:
+            pd.DataFrame: DataFrame with sales data for sunburst chart.
+        """
+        # ----- Transform the data ----- #
+        df = (
+            df.groupby(["PurityCategory", "ItemCategory", "ItemCode"])
+            .agg(
+                {
+                    "GrossWt": "sum",
+                    "PureWt": "sum",
+                    "MakingValue": "sum",
+                }
+            )
+            .sort_values(by="MakingValue", ascending=False)
+            .reset_index()
+        )
+        df["MakingRt"] = df["MakingValue"] / df["GrossWt"]
+        df = df[df.GrossWt > 0]
+        return df
