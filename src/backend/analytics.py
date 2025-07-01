@@ -9,7 +9,6 @@ class Analytics:
         sales_df: pd.DataFrame,
         cashbook: pd.DataFrame,
         fixed_costs: pd.DataFrame,
-        convert_gold=False,
         gold_rate: float = 390.0,
     ) -> pd.DataFrame:
         """
@@ -19,7 +18,6 @@ class Analytics:
             sales_df (pd.DataFrame): DataFrame containing sales data.
             cashbook (pd.DataFrame): DataFrame containing cashbook data.
             fixed_costs (pd.DataFrame): DataFrame containing fixed costs data.
-            convert_gold (bool): Whether to account for gains in gold. Defaults to False.
             gold_rate (float): The current gold rate in AED per gram. Defaults to 390.0.
 
         Returns:
@@ -100,13 +98,7 @@ class Analytics:
 
         # Add derived columns
         monthly_data["Total Income"] = (
-            (
-                monthly_data["Making Charges"]
-                + monthly_data["QTR Making Charges"]
-                + monthly_data["GoldGains"]
-            )
-            if convert_gold
-            else (monthly_data["Making Charges"] + monthly_data["QTR Making Charges"])
+            monthly_data["Making Charges"] + monthly_data["QTR Making Charges"]
         )
 
         # Convert to negative for expenses

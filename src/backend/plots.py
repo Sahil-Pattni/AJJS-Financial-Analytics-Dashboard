@@ -15,12 +15,15 @@ class Color(Enum):
     DARK_RED = "#CD5656"
     RED = "#DD3E3E"
     BLACK = "#000000"
+    GREEN1 = "#819A91"
+    GREEN2 = "#A7C1A8"
+    GREEN3 = "#D1D8BE"
 
 
 class Plots:
 
     @staticmethod
-    def income_expenses_chart(monthly_data: pd.DataFrame) -> None:
+    def income_expenses_chart(monthly_data: pd.DataFrame, convert_gold=False) -> None:
         """
         Generates an income and expenses chart using Streamlit.
 
@@ -32,17 +35,31 @@ class Plots:
         fig = go.Figure()
 
         # Income
+
         fig.add_trace(
             go.Bar(
                 x=monthly_data.index,
                 y=monthly_data["Total Income"],
-                name="Total Income",
-                marker_color=Color.OLIVE_GREEN.value,
+                name="Making Charges",
+                marker_color=Color.GREEN1.value,
                 text=monthly_data["Total Income"].apply(lambda x: f"{x:,.2f} AED"),
                 textposition="outside",
-                hovertemplate=("Month: %{x}<br>" + "Total Income: %{y:,.2f} AED<br>"),
+                hovertemplate=("Month: %{x}<br>" + "Making Charges: %{y:,.2f} AED<br>"),
             )
         )
+
+        if convert_gold:
+            fig.add_trace(
+                go.Bar(
+                    x=monthly_data.index,
+                    y=monthly_data["GoldGains"],
+                    name="Gold Gains",
+                    marker_color=Color.GREEN3.value,
+                    text=monthly_data["GoldGains"].apply(lambda x: f"{x:,.2f} AED"),
+                    textposition="outside",
+                    hovertemplate=("Month: %{x}<br>" + "Gold Gains: %{y:,.2f} AED<br>"),
+                )
+            )
 
         # Expenses
         fig.add_trace(
@@ -93,8 +110,8 @@ class Plots:
             )
         )
 
-        ymax = max(monthly_data["Total Income"].max() * 1.3, 300000)
-        ymin = min(monthly_data["Total Cost"].min() * 1.3, -300000)
+        ymax = max(monthly_data["Total Income"].max() * 1.3, 400000)
+        ymin = min(monthly_data["Total Cost"].min() * 1.3, -330000)
 
         logging.info(f"Y-axis range set to: {ymin} to {ymax}")
 

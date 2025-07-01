@@ -15,8 +15,9 @@ toggle = st.sidebar.toggle("Convert Gold Gains to Cash", value=False)
 gold_rate = st.sidebar.number_input(
     "Gold Rate ($/ounce)", min_value=0.0, value=3348.66, step=1.0
 )
-kwargs = {"convert_gold": toggle, "gold_rate": oz_to_gram(gold_rate)}
+kwargs = {"gold_rate": oz_to_gram(gold_rate)}
 ignore_salaries = st.sidebar.toggle("Exclude Salaries", value=False)
+
 # ----- DATA ----- #
 fig = Plots.income_expenses_chart(
     Analytics.income_expenses_data(
@@ -24,9 +25,9 @@ fig = Plots.income_expenses_chart(
         ss["cashbook"].cashbook,
         ss["cashbook"].fixed_costs,
         **kwargs
-    )
+    ),
+    convert_gold=toggle,
 )
-
 st.plotly_chart(fig, use_container_width=True)
 
 
