@@ -1,5 +1,8 @@
 from streamlit import session_state as ss
 import streamlit as st
+import sys
+
+sys.dont_write_bytecode = True  # Prevents creation of .pyc files
 
 from utils import present_navigation
 import logging

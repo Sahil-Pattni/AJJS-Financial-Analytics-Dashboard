@@ -13,7 +13,7 @@ gold_rate = st.sidebar.number_input(
     "Gold Rate (AED per gram)", min_value=0.0, value=390.0, step=1.0
 )
 kwargs = {"convert_gold": toggle, "gold_rate": gold_rate}
-
+ignore_salaries = st.sidebar.toggle("Exclude Salaries", value=False)
 # ----- DATA ----- #
 fig = Plots.income_expenses_chart(
     Analytics.income_expenses_data(
@@ -28,7 +28,6 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 st.subheader("Expenses Expansion")
-ignore_salaries = st.toggle("Exclude Salaries", value=False)
 fig = Plots.fixed_costs_sunburst(
     Analytics.fixed_cost_pie_chart_data(
         ss["cashbook"].cashbook, ss["cashbook"].fixed_costs
