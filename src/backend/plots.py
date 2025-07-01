@@ -40,11 +40,7 @@ class Plots:
                 marker_color=Color.OLIVE_GREEN.value,
                 text=monthly_data["Total Income"].apply(lambda x: f"{x:,.2f} AED"),
                 textposition="outside",
-                hovertemplate=(
-                    "Total Income: %{y:,.2f} AED<br>"
-                    + "Month: %{x}<br>"
-                    + "Category: %{name}<extra></extra>"
-                ),
+                hovertemplate=("Month: %{x}<br>" + "Total Income: %{y:,.2f} AED<br>"),
             )
         )
 
@@ -57,11 +53,7 @@ class Plots:
                 marker_color=Color.DARK_RED.value,
                 text=monthly_data["Total Cost"].apply(lambda x: f"{x:,.2f} AED"),
                 textposition="outside",
-                hovertemplate=(
-                    "Total Expenses: %{y:,.2f} AED<br>"
-                    + "Month: %{x}<br>"
-                    + "Category: %{name}<extra></extra>"
-                ),
+                hovertemplate=("Month: %{x}<br>" + "Total Expenses: %{y:,.2f} AED<br>"),
             )
         )
 
@@ -78,14 +70,14 @@ class Plots:
         )
 
         # Fixed costs line
-        fixed_cost = monthly_data["Fixed Costs"].mean()
+        fixed_cost = -monthly_data["Fixed Costs"].mean()
         fig.add_hline(
             y=fixed_cost,
             line_dash="dash",
-            line_color=Color.RED.value,
+            line_color=Color.BLACK.value,
             annotation_text=f"Monthly Fixed Cost: {fixed_cost:,.2f} AED",
             annotation_position="top left",
-            annotation_font_color=Color.RED.value,
+            annotation_font_color=Color.BLACK.value,
             opacity=0.2,
         )
 
@@ -97,11 +89,7 @@ class Plots:
                 mode="lines+markers",
                 name="Net Profit",
                 line=dict(color=Color.DARK_GREY.value, width=2),
-                hovertemplate=(
-                    "Net Profit: %{y:,.2f} AED<br>"
-                    + "Month: %{x}<br>"
-                    + "Category: %{name}<extra></extra>"
-                ),
+                hovertemplate=("Month: %{x}<br>" + "Net Profit: %{y:,.2f} AED<br>"),
             )
         )
 
@@ -158,8 +146,11 @@ class Plots:
         )
 
         fig.update_traces(
-            text=expenses["Debit"].map(lambda x: f"AED {x:,.2f}"),
-            textinfo="label+text+percent entry",
+            # text=expenses["Debit"].map(lambda x: f"AED {x:,.2f}"),
+            textinfo="none",
+            texttemplate=(
+                "<b>%{label}</b><br>" + "AED %{value:,.2f}<br>" + "%{percentEntry:.1%}"
+            ),
             textfont_size=10,
         )
 
