@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import logging
 import streamlit as st
+from scipy.signal import savgol_filter
 
 
 class Color(Enum):
@@ -34,8 +35,6 @@ class Plots:
         Args:
             monthly_data (pd.DataFrame): DataFrame containing monthly income and expenses.
         """
-
-        st.dataframe(monthly_data, use_container_width=True)
 
         # ----- Plotting ----- #
         fig = go.Figure()
@@ -369,8 +368,30 @@ class Plots:
             title="Weekly Distribution of Gross Weight",
         )
 
-        weekly_avg = sales.groupby("Week")["GrossWt"].sum().reset_index()
-        weekly_avg = weekly_avg["GrossWt"].mean()
+        # Add a rolling average line
+        weekly = sales.copy()
+
+        weekly = (
+            weekly.resample("W", on="DocDate").agg({"GrossWt": "sum"}).reset_index()
+        )
+        weekly["RollingAvg"] = (
+            weekly["GrossWt"].rolling(window=4, win_type="triang").mean()
+        )
+        # Backfill
+        weekly["RollingAvg"] = weekly["RollingAvg"].fillna(method="bfill")
+        st.info(f"{weekly.shape[0]} days of sales data available.")
+        fig.add_trace(
+            go.Scatter(
+                x=weekly["DocDate"],
+                y=savgol_filter(weekly["RollingAvg"], 10, 2),
+                mode="lines",
+                name="Weekly Average",
+                line=dict(color=Color.DARK_RED.value, width=2),
+                hovertemplate=(
+                    "Week: %{x}<br>" + "Average Gross Weight: %{y:.2f} g<br>"
+                ),
+            )
+        )
 
         fig.update_traces(
             marker_line_width=2,
