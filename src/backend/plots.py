@@ -358,7 +358,6 @@ class Plots:
             # labels={"MakingValue": "Making Value"},
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
             title="Weekly Distribution of Gross Weight",
-            # marginal="box"
         )
 
         weekly_avg = sales.groupby("Week")["GrossWt"].sum().reset_index()
