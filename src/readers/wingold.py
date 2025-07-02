@@ -103,6 +103,10 @@ class WingoldReader:
             self.__get_purity_manufacturing
         )
 
+        self._transactions["ItemWeight"] = (
+            self._transactions["GrossWt"] / self._transactions["QtyInPcs"]
+        )
+
     def __extract_sales(self) -> pd.DataFrame:
         # ----- Extract Sales Data ----- #
         logging.info("Extracting sales data...")

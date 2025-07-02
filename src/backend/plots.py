@@ -378,8 +378,8 @@ class Plots:
             weekly["GrossWt"].rolling(window=4, win_type="triang").mean()
         )
         # Backfill
-        weekly["RollingAvg"] = weekly["RollingAvg"].fillna(method="bfill")
-        st.info(f"{weekly.shape[0]} days of sales data available.")
+        weekly["RollingAvg"] = weekly["RollingAvg"].bfill()
+
         fig.add_trace(
             go.Scatter(
                 x=weekly["DocDate"],
@@ -409,6 +409,95 @@ class Plots:
             yaxis_title="Gross Weight (g)",
             width=1000,
             height=600,
+            legend=dict(
+                x=0.98,  # 98% from the left of the plotting area
+                y=0.98,  # 98% from the bottom (i.e. near the top)
+                xanchor="right",
+                yanchor="top",
+                bgcolor="rgba(255,255,255,0.6)",  # semi-transparent white bg
+                bordercolor="black",
+                borderwidth=1,
+            ),
         )
 
+        return fig
+
+    @staticmethod
+    def item_weight_boxplot(sales: pd.DataFrame) -> None:
+        """
+        Generates a boxplot of item weights by item category.
+
+        Args:
+            sales (pd.DataFrame): DataFrame containing sales data.
+        """
+
+        # ----- Plotting ----- #
+        fig = px.box(
+            sales.groupby(["ItemCategory", "DocNumber"])
+            .agg({"ItemWeight": "mean"})
+            .reset_index(),
+            x="ItemCategory",
+            y="ItemWeight",
+            title="Average Item Weight by Category",
+            labels={"ItemCategory": "Item Category", "ItemWeight": "Item Weight (g)"},
+            color_discrete_sequence=[Color.OCEAN_BLUE.value],
+            points=False,
+        )
+
+        fig.update_layout(
+            xaxis_title="Item Category",
+            yaxis_title="Item Weight (g)",
+        )
+
+        fig.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="black"),
+            xaxis=dict(showgrid=False, zeroline=False, gridcolor="lightgray"),
+            yaxis=dict(showgrid=True, zeroline=False, gridcolor="lightgray"),
+            width=1000,
+            height=600,
+        )
+
+        # Present chart
+        return fig
+
+    @staticmethod
+    def item_weight_distribution(sales: pd.DataFrame, item_category) -> None:
+        """
+        Generates a histogram of item weights by item category.
+
+        Args:
+            sales (pd.DataFrame): DataFrame containing sales data.
+        """
+
+        # ----- Plotting ----- #
+        fig = px.histogram(
+            sales[
+                (sales.TransactionType == "SALE")
+                & (sales.ItemCategory == item_category)
+            ],
+            x="ItemWeight",
+            nbins=50,
+            title=f"Weight Distribution: {item_category}",
+            color_discrete_sequence=[Color.OCEAN_BLUE.value],
+            barmode="relative",
+            histnorm="percent",
+        )
+
+        fig.update_traces(marker_line_width=1, marker_color="rgba(0, 48, 73, 0.5)")
+
+        fig.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="black"),
+            xaxis=dict(showgrid=False, zeroline=False, gridcolor="lightgray"),
+            yaxis=dict(showgrid=True, zeroline=False, gridcolor="lightgray"),
+            yaxis_title="Percent (%)",
+            xaxis_title="Gross Weight (g)",
+            width=1000,
+            height=600,
+        )
+
+        # Present chart
         return fig

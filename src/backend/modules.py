@@ -43,6 +43,19 @@ class Components:
             fig = Plots.sales_histogram(df)
             st.plotly_chart(fig, use_container_width=True)
 
+        _, q, _ = st.columns([1, 5, 1])
+        with q:
+            with st.sidebar.container(border=True):
+                st.subheader("Item Weight Distribution")
+                item = st.selectbox(
+                    "Select Item",
+                    df["ItemCategory"].unique(),
+                    index=0,
+                    help="Select an item to view its weight distribution.",
+                )
+            fig = Plots.item_weight_distribution(df, item_category=item)
+            st.plotly_chart(fig, use_container_width=True)
+
         x, y = st.columns(2)
         with x:
             st.subheader("Making Rate by Item")
