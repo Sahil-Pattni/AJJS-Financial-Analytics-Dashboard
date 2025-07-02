@@ -24,6 +24,16 @@ class Components:
 
     @staticmethod
     def generate_sales_analytics(df: pd.DataFrame):
+
+        with st.sidebar.container(border=True):
+            st.subheader("Item Weight Distribution")
+            item = st.selectbox(
+                "Select Item",
+                df["ItemCategory"].unique(),
+                index=0,
+                help="Select an item to view its weight distribution.",
+            )
+
         st.subheader("Making Charges Purity Distribution")
         q, k = st.columns([1, 1])
         with q:
@@ -43,16 +53,11 @@ class Components:
             fig = Plots.sales_histogram(df)
             st.plotly_chart(fig, use_container_width=True)
 
-        _, q, _ = st.columns([1, 5, 1])
+        q, k = st.columns([1, 1])
+        with k:
+            fig = Plots.item_weight_boxplot(df, item)
+            st.plotly_chart(fig, use_container_width=True)
         with q:
-            with st.sidebar.container(border=True):
-                st.subheader("Item Weight Distribution")
-                item = st.selectbox(
-                    "Select Item",
-                    df["ItemCategory"].unique(),
-                    index=0,
-                    help="Select an item to view its weight distribution.",
-                )
             fig = Plots.item_weight_distribution(df, item_category=item)
             st.plotly_chart(fig, use_container_width=True)
 
@@ -62,7 +67,6 @@ class Components:
             st.dataframe(Components.sales_agg(df, "ItemCode"), use_container_width=True)
 
         with y:
-
             st.subheader("Making Rate by Purity")
             st.dataframe(
                 Components.sales_agg(df, "PurityCategory"), use_container_width=True

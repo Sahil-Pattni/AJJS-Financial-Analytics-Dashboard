@@ -423,7 +423,7 @@ class Plots:
         return fig
 
     @staticmethod
-    def item_weight_boxplot(sales: pd.DataFrame) -> None:
+    def item_weight_boxplot(sales: pd.DataFrame, item_category) -> None:
         """
         Generates a boxplot of item weights by item category.
 
@@ -433,15 +433,15 @@ class Plots:
 
         # ----- Plotting ----- #
         fig = px.box(
-            sales.groupby(["ItemCategory", "DocNumber"])
-            .agg({"ItemWeight": "mean"})
-            .reset_index(),
-            x="ItemCategory",
+            sales[
+                (sales.TransactionType == "SALE")
+                & (sales.ItemCategory == item_category)
+            ],
             y="ItemWeight",
             title="Average Item Weight by Category",
             labels={"ItemCategory": "Item Category", "ItemWeight": "Item Weight (g)"},
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
-            points=False,
+            # points=False,
         )
 
         fig.update_layout(
