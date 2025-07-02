@@ -135,7 +135,7 @@ class Plots:
             xaxis=dict(tickformat="%b %Y"),
             margin=dict(t=50, b=50, l=150, r=50),
             barmode="relative",
-            height=600,
+            height=900,
         )
 
         fig.update_xaxes(automargin=True)
@@ -246,7 +246,7 @@ class Plots:
                 "22K": Color.BLUE2.value,
                 "9K": pastel[4],
             },
-            title="Monthly Sales by Purity",
+            # title="Monthly Sales by Purity",
             barmode="stack",
             height=600,
             width=800,

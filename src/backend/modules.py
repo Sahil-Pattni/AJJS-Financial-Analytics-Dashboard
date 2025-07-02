@@ -24,18 +24,17 @@ class Components:
 
     @staticmethod
     def generate_sales_analytics(df: pd.DataFrame):
-
+        st.subheader("Making Charges Purity Distribution")
         q, k = st.columns([1, 1])
         with q:
-            fig = Plots.monthwise_sales_by_purity(
-                Analytics.monthly_sales_data(df),
-            )
+            fig = Plots.monthwise_sales_by_purity(Analytics.monthly_sales_data(df))
             st.plotly_chart(fig, use_container_width=True)
 
         with k:
             fig = Plots.sales_sunburst(Analytics.sales_item_sunburst_data(df))
             st.plotly_chart(fig, use_container_width=True)
 
+        st.subheader("Weekly Sales Analysis")
         q, k = st.columns([1, 1])
         with q:
             fig = Plots.weekly_monthly_boxplot(df)
