@@ -79,7 +79,15 @@ class Plots:
         )
 
         # Add line for average expenses
-        avg = monthly_data["Net Profit"].mean()
+        profit = (
+            monthly_data["Net Profit"]
+            if not convert_gold
+            else (
+                (monthly_data["Total Income"] + monthly_data["GoldGains"])
+                + monthly_data["Total Cost"]
+            )
+        )
+        avg = profit.mean()
         fig.add_hline(
             y=avg,
             line_dash="dash",
@@ -106,7 +114,7 @@ class Plots:
         fig.add_trace(
             go.Scatter(
                 x=monthly_data.index,
-                y=monthly_data["Net Profit"],
+                y=profit,
                 mode="lines+markers",
                 name="Net Profit",
                 line=dict(color=Color.DARK_GREY.value, width=2),
@@ -183,7 +191,7 @@ class Plots:
         fig.update_layout(
             title_x=0.5,
             width=800,
-            height=600,
+            height=800,
             margin=dict(t=50, b=50, l=100, r=50),
         )
 
