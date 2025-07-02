@@ -53,13 +53,7 @@ class Analytics:
         # We exclude employees and rent from expenses as they're accounted
         # for in fixed costs.
         monthly_expenses = (
-            cashbook[
-                (cashbook.Debit > 0)
-                & (cashbook["Sub-Category"] != "Staff Salaries")
-                & (cashbook["Sub-Category"] != "Visa Fees")
-                & (cashbook["Sub-Category"] != "Loans")
-                & (cashbook["Super-Category"] != "Rent")
-            ]
+            cashbook[(cashbook.Debit > 0) & (cashbook["Cost Type"] != "FIXED")]
             .groupby(cashbook.Date.dt.to_period("M"))["Debit"]
             .sum()
             .reset_index()
@@ -123,6 +117,7 @@ class Analytics:
         expenses = (
             cashbook[
                 (cashbook.Debit > 0)
+                & (cashbook["Cost Type"] == "FIXED")
                 & (cashbook["Sub-Category"] != "Staff Salaries")
                 & (cashbook["Sub-Category"] != "Visa Fees")
                 & (cashbook["Sub-Category"] != "Loans")
@@ -135,16 +130,13 @@ class Analytics:
 
         # Derive fixed costs up until the current month
         fc = fixed_costs.copy()
-        fc["Debit"] = (fc["Debit"] / 12) * datetime.now().month
+        fc["Debit"] = fc["Debit"] / 12
 
-        expenses.loc[expenses["Cost Type"] == "FIXED", "Debit"] = (
-            expenses.loc[expenses["Cost Type"] == "FIXED", "Debit"] / 12
-        ) * datetime.now().month
+        expenses["Debit"] = expenses["Debit"] / 12
 
         #  Combine cashbook expenses and fixed costs
         expenses = pd.concat([expenses, fc], ignore_index=True)
 
-        expenses = expenses[expenses["Cost Type"] == "FIXED"]
         expenses.sort_values(by=["Cost Type", "Debit"], ascending=False, inplace=True)
 
         return expenses

@@ -35,11 +35,12 @@ class Plots:
             monthly_data (pd.DataFrame): DataFrame containing monthly income and expenses.
         """
 
+        st.dataframe(monthly_data, use_container_width=True)
+
         # ----- Plotting ----- #
         fig = go.Figure()
 
         # Income
-
         fig.add_trace(
             go.Bar(
                 x=monthly_data.index,
