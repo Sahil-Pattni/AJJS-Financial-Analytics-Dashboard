@@ -161,7 +161,6 @@ class Analytics:
         )
 
         df.reset_index(inplace=True)
-        df["Month"] = df["Month"].dt.to_timestamp()
 
         return df
 

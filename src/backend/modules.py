@@ -25,11 +25,20 @@ class Components:
     @staticmethod
     def generate_sales_analytics(df: pd.DataFrame):
 
-        _, q, _ = st.columns([1, 5, 1])
+        q, k = st.columns([1, 1])
         with q:
             fig = Plots.monthwise_sales_by_purity(
                 Analytics.monthly_sales_data(df),
             )
+            st.plotly_chart(fig, use_container_width=True)
+
+        with k:
+            fig = Plots.sales_histogram(df)
+            st.plotly_chart(fig, use_container_width=True)
+
+        _, q, _ = st.columns([1, 5, 1])
+        with q:
+            fig = Plots.weekly_monthly_boxplot(df)
             st.plotly_chart(fig, use_container_width=True)
 
         x, y = st.columns(2)
@@ -46,8 +55,3 @@ class Components:
             st.dataframe(
                 Components.sales_agg(df, "PurityCategory"), use_container_width=True
             )
-
-        _, q, _ = st.columns([1, 5, 1])
-        with q:
-            fig = Plots.weekly_monthly_boxplot(df)
-            st.plotly_chart(fig, use_container_width=True)

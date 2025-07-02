@@ -64,8 +64,19 @@ class WingoldReader:
         )
 
         # Datetime conversions
+        self._transactions["DocDate"] = self._transactions["DocDate"].str.replace(
+            "0001", "1971"
+        )
         self._transactions["DocDate"] = pd.to_datetime(self._transactions["DocDate"])
-        self._transactions["Month"] = self._transactions["DocDate"].dt.to_period("M")
+        self._transactions["Month"] = (
+            self._transactions["DocDate"].dt.to_period("M").astype(str)
+        )
+        self._transactions["Week"] = (
+            self._transactions["DocDate"].dt.to_period("W").astype(str)
+        )
+        self._transactions["Day"] = (
+            self._transactions["DocDate"].dt.to_period("D").astype(str)
+        )
         self._transactions.sort_values(by="DocDate", inplace=True)
 
         # Add name from accounts

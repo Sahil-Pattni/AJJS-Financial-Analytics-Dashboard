@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import logging
+import streamlit as st
 
 
 class Color(Enum):
@@ -338,4 +339,47 @@ class Plots:
         )
 
         # Present chart
+        return fig
+
+    @staticmethod
+    def sales_histogram(sales: pd.DataFrame) -> None:
+        """
+        Generates a histogram of sales data.
+
+        Args:
+            sales (pd.DataFrame): DataFrame containing sales data.
+        """
+
+        fig = px.histogram(
+            sales,
+            x="Day",
+            y="GrossWt",
+            nbins=50,
+            # labels={"MakingValue": "Making Value"},
+            color_discrete_sequence=[Color.OCEAN_BLUE.value],
+            title="Weekly Distribution of Gross Weight",
+            # marginal="box"
+        )
+
+        weekly_avg = sales.groupby("Week")["GrossWt"].sum().reset_index()
+        weekly_avg = weekly_avg["GrossWt"].mean()
+
+        fig.update_traces(
+            marker_line_width=2,
+            marker_line_color="black",
+            marker_color="rgba(0, 48, 73, 0.5)",
+        )
+
+        fig.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="black"),
+            xaxis=dict(showgrid=False, zeroline=False, gridcolor="lightgray"),
+            yaxis=dict(showgrid=True, zeroline=False, gridcolor="lightgray"),
+            xaxis_title="Week",
+            yaxis_title="Gross Weight (g)",
+            width=1000,
+            height=600,
+        )
+
         return fig
