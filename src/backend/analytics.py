@@ -67,7 +67,6 @@ class Analytics:
         monthly_expenses.columns = ["Month", "Expenses"]
         monthly_expenses["Month"] = monthly_expenses["Month"].dt.to_timestamp()
 
-        sfc = []
         # Static fixed costs
         fixed_costs = fixed_costs.copy()
         fc = fixed_costs["Debit"].sum() / 12
@@ -83,17 +82,13 @@ class Analytics:
             / 12
         )
 
-        monthly_expenses["Fixed Costs"] = fc + cbfixed
-
-        monthly_expenses = pd.concat(
-            [monthly_expenses, pd.DataFrame(sfc)], ignore_index=True
-        )
-
         # ----- Merge the data ----- #
         monthly_data = pd.merge(
             monthly_making, monthly_qtr_making, on="Month", how="outer"
         )
         monthly_data = pd.merge(monthly_data, monthly_expenses, on="Month", how="outer")
+
+        monthly_data["Fixed Costs"] = fc + cbfixed
         monthly_data.fillna(0, inplace=True)
 
         # Add derived columns
