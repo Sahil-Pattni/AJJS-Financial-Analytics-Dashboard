@@ -11,13 +11,30 @@ class Components:
     def sales_agg(df: pd.DataFrame, colname: str):
         return (
             df.groupby(colname)
-            .agg({"GrossWt": "sum", "PureWt": "sum", "MakingValue": "sum"})
+            .agg(
+                {
+                    "GrossWt": "sum",
+                    "PureWt": "sum",
+                    "MakingRt": "mean",
+                    "MakingValue": "sum",
+                }
+            )
             .sort_values(by="MakingValue", ascending=False)
+            # Rename cols
+            .rename(
+                columns={
+                    "GrossWt": "Gross Weight",
+                    "PureWt": "Pure Weight",
+                    "MakingRt": "Making Rate",
+                    "MakingValue": "Making Value",
+                }
+            )
             .style.format(
                 {
-                    "GrossWt": "{:,.2f} g",
-                    "PureWt": "{:,.2f} g",
-                    "MakingValue": "{:,.2f} AED",
+                    "Gross Weight": "{:,.2f} g",
+                    "Pure Weight": "{:,.2f} g",
+                    "Making Rate": "{:,.2f} AED/g",
+                    "Making Value": "{:,.2f} AED",
                 }
             )
         )
