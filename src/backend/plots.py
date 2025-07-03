@@ -424,7 +424,7 @@ class Plots:
 
     @staticmethod
     def item_weight_boxplot(
-        sales: pd.DataFrame, purity=None, item_category="CHA"
+        sales: pd.DataFrame, purity=None, item_category=None
     ) -> None:
         """
         Generates a boxplot of item weights by item category.
@@ -433,9 +433,10 @@ class Plots:
             sales (pd.DataFrame): DataFrame containing sales data.
         """
 
-        data = sales[
-            (sales.TransactionType == "SALE") & (sales.ItemCategory == item_category)
-        ]
+        data = sales[(sales.TransactionType == "SALE")]
+
+        if item_category:
+            data = data[data.ItemCategory == item_category]
         if purity:
             data = data[data.PurityCategory == purity]
 
@@ -448,7 +449,7 @@ class Plots:
             .reset_index(),
             x="Month",
             y="ItemWeight",
-            title=f"Median Weekly Item Weight by Month: {item_category}",
+            title=f"Median Weekly Item Weight by Month: {item_category if item_category else 'All Items'}",
             labels={"ItemCategory": "Item Category", "ItemWeight": "Item Weight (g)"},
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
             # points=False,
@@ -479,7 +480,7 @@ class Plots:
 
     @staticmethod
     def item_weight_distribution(
-        sales: pd.DataFrame, item_category, purity=None, nbins=50
+        sales: pd.DataFrame, item_category=None, purity=None, nbins=50
     ) -> None:
         """
         Generates a histogram of item weights by item category.
@@ -488,9 +489,9 @@ class Plots:
             sales (pd.DataFrame): DataFrame containing sales data.
         """
 
-        data = sales[
-            (sales.TransactionType == "SALE") & (sales.ItemCategory == item_category)
-        ]
+        data = sales[(sales.TransactionType == "SALE")]
+        if item_category:
+            data = data[data.ItemCategory == item_category]
         if purity:
             data = data[data.PurityCategory == purity]
         # ----- Plotting ----- #
@@ -500,7 +501,7 @@ class Plots:
             y="QtyInPcs",
             histfunc="sum",
             nbins=nbins,
-            title=f"Weight Distribution: {item_category}",
+            title=f"Weight Distribution: {item_category if item_category else 'All Items'}",
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
             barmode="relative",
             histnorm="percent",

@@ -46,7 +46,7 @@ class Components:
             st.subheader("Item Weight Distribution")
             item = st.selectbox(
                 "Select Item",
-                df["ItemCategory"].unique(),
+                df["ItemCategory"].unique().tolist() + ["None"],
                 index=0,
                 help="Select an item to view its weight distribution.",
             )
@@ -84,17 +84,22 @@ class Components:
             st.plotly_chart(fig, use_container_width=True)
 
         q, k = st.columns([1, 1])
+        kwargs = {}
+        if item != "None":
+            kwargs["item_category"] = item
+        if purity != "None":
+            kwargs["purity"] = purity
         with k:
             fig = Plots.item_weight_boxplot(
-                df, item_category=item, purity=None if purity == "None" else purity
+                df,
+                **kwargs,
             )
             st.plotly_chart(fig, use_container_width=True)
         with q:
             fig = Plots.item_weight_distribution(
                 df,
-                item_category=item,
                 nbins=nbins,
-                purity=None if purity == "None" else purity,
+                **kwargs,
             )
             st.plotly_chart(fig, use_container_width=True)
 
