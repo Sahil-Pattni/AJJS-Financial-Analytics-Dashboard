@@ -336,10 +336,10 @@ class Plots:
 
         # Uncomment below to remove inside fill color
 
-        # fig.update_traces(
-        #     fillcolor="white",
-        #     line_width=2,
-        # )
+        fig.update_traces(
+            fillcolor="rgba(131,152,163,255)",
+            line_width=2,
+        )
 
         fig.update_layout(
             xaxis_title="Month",
@@ -396,7 +396,7 @@ class Plots:
         fig.update_traces(
             marker_line_width=2,
             marker_line_color="black",
-            marker_color="rgba(0, 48, 73, 0.5)",
+            marker_color="rgba(131,152,163,255)",
         )
 
         fig.update_layout(
@@ -423,7 +423,9 @@ class Plots:
         return fig
 
     @staticmethod
-    def item_weight_boxplot(sales: pd.DataFrame, item_category) -> None:
+    def item_weight_boxplot(
+        sales: pd.DataFrame, purity=None, item_category="CHA"
+    ) -> None:
         """
         Generates a boxplot of item weights by item category.
 
@@ -431,17 +433,30 @@ class Plots:
             sales (pd.DataFrame): DataFrame containing sales data.
         """
 
+        data = sales[
+            (sales.TransactionType == "SALE") & (sales.ItemCategory == item_category)
+        ]
+        if purity:
+            data = data[data.PurityCategory == purity]
+
         # ----- Plotting ----- #
         fig = px.box(
-            sales[
-                (sales.TransactionType == "SALE")
-                & (sales.ItemCategory == item_category)
-            ],
+            data.loc[data.index.repeat(data.QtyInPcs)]
+            .reset_index(drop=True)
+            .groupby(["ItemCategory", "Month", "Week"])
+            .agg({"ItemWeight": "median"})
+            .reset_index(),
+            x="Month",
             y="ItemWeight",
-            title="Average Item Weight by Category",
+            title=f"Median Weekly Item Weight by Month: {item_category}",
             labels={"ItemCategory": "Item Category", "ItemWeight": "Item Weight (g)"},
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
             # points=False,
+        )
+
+        fig.update_traces(
+            fillcolor="rgba(131,152,163,255)",
+            line_width=2,
         )
 
         fig.update_layout(
@@ -463,7 +478,9 @@ class Plots:
         return fig
 
     @staticmethod
-    def item_weight_distribution(sales: pd.DataFrame, item_category) -> None:
+    def item_weight_distribution(
+        sales: pd.DataFrame, item_category, purity=None, nbins=50
+    ) -> None:
         """
         Generates a histogram of item weights by item category.
 
@@ -471,21 +488,25 @@ class Plots:
             sales (pd.DataFrame): DataFrame containing sales data.
         """
 
+        data = sales[
+            (sales.TransactionType == "SALE") & (sales.ItemCategory == item_category)
+        ]
+        if purity:
+            data = data[data.PurityCategory == purity]
         # ----- Plotting ----- #
         fig = px.histogram(
-            sales[
-                (sales.TransactionType == "SALE")
-                & (sales.ItemCategory == item_category)
-            ],
+            data,
             x="ItemWeight",
-            nbins=50,
+            y="QtyInPcs",
+            histfunc="sum",
+            nbins=nbins,
             title=f"Weight Distribution: {item_category}",
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
             barmode="relative",
             histnorm="percent",
         )
 
-        fig.update_traces(marker_line_width=1, marker_color="rgba(0, 48, 73, 0.5)")
+        fig.update_traces(marker_line_width=2, marker_color="rgba(131,152,163,255)")
 
         fig.update_layout(
             plot_bgcolor="rgba(0,0,0,0)",

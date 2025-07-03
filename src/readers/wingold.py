@@ -94,6 +94,15 @@ class WingoldReader:
         self._transactions["ItemCategory"] = self._transactions["ItemCode"].str.extract(
             r"\d{2}(\w+)"
         )
+        self._transactions["ItemCategory"] = self._transactions["ItemCategory"].map(
+            {
+                "BRA": "Bracelets",
+                "CHA": "Chains",
+                "BAN": "Bangles",
+                "RIN": "Rings",
+                "PEN": "Pendants",
+            }
+        )
 
         # Purity
         self._transactions["PurityCategory"] = self._transactions["Purity"].apply(

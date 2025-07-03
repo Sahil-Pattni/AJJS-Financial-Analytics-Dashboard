@@ -33,6 +33,19 @@ class Components:
                 index=0,
                 help="Select an item to view its weight distribution.",
             )
+            purity = st.selectbox(
+                "Select Purity",
+                ["None"] + df["PurityCategory"].unique().tolist(),
+                index=0,
+                help="Select a purity category to filter the weight distribution.",
+            )
+            nbins = st.slider(
+                "Number of Bins",
+                min_value=10,
+                value=50,
+                step=5,
+                help="Select the number of bins for the histogram.",
+            )
 
         st.subheader("Making Charges Purity Distribution")
         q, k = st.columns([1, 1])
@@ -55,10 +68,17 @@ class Components:
 
         q, k = st.columns([1, 1])
         with k:
-            fig = Plots.item_weight_boxplot(df, item)
+            fig = Plots.item_weight_boxplot(
+                df, item_category=item, purity=None if purity == "None" else purity
+            )
             st.plotly_chart(fig, use_container_width=True)
         with q:
-            fig = Plots.item_weight_distribution(df, item_category=item)
+            fig = Plots.item_weight_distribution(
+                df,
+                item_category=item,
+                nbins=nbins,
+                purity=None if purity == "None" else purity,
+            )
             st.plotly_chart(fig, use_container_width=True)
 
         x, y = st.columns(2)
