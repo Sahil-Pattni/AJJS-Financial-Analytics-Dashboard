@@ -17,7 +17,7 @@ with st.sidebar:
             min_value=0.0,
             max_value=1.0,
             step=0.05,
-            value=0.5,
+            value=0.3,
             key="share_18k",
             on_change=lambda: ss.update({"share_22k": 1 - ss.share_18k}),
         )
@@ -27,7 +27,7 @@ with st.sidebar:
             min_value=0.0,
             max_value=1.0,
             step=0.05,
-            value=0.5,
+            value=0.7,
             key="share_22k",
             on_change=lambda: ss.update({"share_18k": 1 - ss.share_22k}),
         )
@@ -71,7 +71,7 @@ revenue = {
     "22k": [],
 }
 
-volume = np.arange(0, ss.max_vol + 0.5, 0.5)
+volume = np.arange(0, ss.max_vol + 0.5, 0.001)
 
 for kg in volume:
     for karat, rev in revenue.items():
@@ -144,7 +144,7 @@ fig.update_layout(
     legend=dict(x=0.01, y=0.99),
     template="plotly_white",
     width=800,
-    height=600,
+    height=800,
 )
 
 fig.update_traces(

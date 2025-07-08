@@ -283,7 +283,9 @@ class Plots:
         sales_max = sales.groupby(sales.Month).agg({y: "sum"})[y].max() * 1.2
         fig.update_layout(
             xaxis_title="Month",
-            yaxis_title="Making Charges (AED)",
+            yaxis_title=(
+                f"Making Charges (AED)" if y == "MakingValue" else "Gross Weight (g)"
+            ),
             legend_title_text="Purity Category",
             xaxis=dict(tickformat="%b %Y"),
             yaxis=dict(
@@ -299,7 +301,7 @@ class Plots:
         )
 
         fig.update_traces(
-            hovertemplate="<b>%{x}</b><br>Purity: %{customdata[0]}<br>Making Value: %{y:,.2f}<extra></extra>",
+            hovertemplate="<b>%{x}</b><br>Purity: %{customdata[0]}<br>Value: %{y:,.2f}<extra></extra>",
         )
 
         # Present chart
