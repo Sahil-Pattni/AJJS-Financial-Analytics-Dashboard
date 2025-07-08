@@ -71,7 +71,7 @@ revenue = {
     "22k": [],
 }
 
-volume = np.arange(0, ss.max_vol + 0.5, 0.001)
+volume = np.arange(0, ss.max_vol + 0.5, 0.2)
 
 for kg in volume:
     for karat, rev in revenue.items():
@@ -115,6 +115,7 @@ fig.add_trace(
         mode="lines",
         name="Total Revenue",
         fill="tozeroy",
+        fillcolor="rgba(116, 141, 169, 0.2)",
         line=dict(color="#778da9", width=2, dash="solid"),
     )
 )
@@ -144,7 +145,7 @@ fig.update_layout(
     legend=dict(x=0.01, y=0.99),
     template="plotly_white",
     width=800,
-    height=800,
+    height=650,
 )
 
 fig.update_traces(
@@ -153,4 +154,4 @@ fig.update_traces(
 
 st.title("Revenue Simulation")
 st.info(f"1 KG = {unit_revenue:,.2f} AED")
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=False)
