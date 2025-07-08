@@ -5,6 +5,7 @@ import pandas as pd
 import logging
 import streamlit as st
 from scipy.signal import savgol_filter
+from datetime import datetime
 
 
 class Color(Enum):
@@ -267,7 +268,12 @@ class Plots:
             height=600,
             width=800,
         )
-        avg = sales.groupby(sales.Month).agg({y: "sum"})[y].mean()
+        avg = sales.groupby(sales.Month).agg({y: "sum"})
+        # Exclude latest month if it is incomplete
+        this_month = datetime.now().strftime("%Y-%m")
+        if sales.Month.max() == this_month:
+            avg = avg[avg.index != this_month]
+        avg = avg[y].mean()
         fig.add_hline(
             y=avg,
             line_dash="dash",
