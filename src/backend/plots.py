@@ -267,14 +267,12 @@ class Plots:
             height=600,
             width=800,
         )
-        avg_making = (
-            sales.groupby(sales.Month).agg({"MakingValue": "sum"})["MakingValue"].mean()
-        )
+        avg = sales.groupby(sales.Month).agg({y: "sum"})[y].mean()
         fig.add_hline(
-            y=avg_making,
+            y=avg,
             line_dash="dash",
             line_color=Color.BLACK.value,
-            annotation_text=f"Average Income: {avg_making:,.2f} AED",
+            annotation_text=f"Average: {avg:,.2f} AED",
             annotation_position="top right",
             annotation_font_color=Color.BLACK.value,
             opacity=0.2,
