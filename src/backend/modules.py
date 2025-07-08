@@ -64,6 +64,12 @@ class Components:
                 help="Select the number of bins for the histogram.",
             )
 
+            normalize = st.toggle(
+                "Normalize Histogram",
+                value=False,
+                help="Check to normalize the histogram to show percentages.",
+            )
+
         st.subheader("Making Charges Purity Distribution")
         q, k = st.columns([1, 1])
         with q:
@@ -99,6 +105,7 @@ class Components:
             fig = Plots.item_weight_distribution(
                 df,
                 nbins=nbins,
+                normalize=normalize,
                 **kwargs,
             )
             st.plotly_chart(fig, use_container_width=True)

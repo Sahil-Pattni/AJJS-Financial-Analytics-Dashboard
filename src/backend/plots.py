@@ -480,7 +480,7 @@ class Plots:
 
     @staticmethod
     def item_weight_distribution(
-        sales: pd.DataFrame, item_category=None, purity=None, nbins=50
+        sales: pd.DataFrame, item_category=None, purity=None, nbins=50, normalize=False
     ) -> None:
         """
         Generates a histogram of item weights by item category.
@@ -498,16 +498,21 @@ class Plots:
         fig = px.histogram(
             data,
             x="ItemWeight",
-            y="QtyInPcs",
+            y="MakingValue",
             histfunc="sum",
             nbins=nbins,
             title=f"Weight Distribution: {item_category if item_category else 'All Items'}",
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
             barmode="relative",
-            histnorm="percent",
         )
 
-        fig.update_traces(marker_line_width=2, marker_color="rgba(131,152,163,255)")
+        fig.update_traces(
+            marker_line_width=2,
+            marker_color="rgba(131,152,163,255)",
+        )
+
+        if normalize:
+            fig.update_traces(histnorm="percent")
 
         fig.update_layout(
             plot_bgcolor="rgba(0,0,0,0)",
@@ -515,8 +520,8 @@ class Plots:
             font=dict(color="black"),
             xaxis=dict(showgrid=False, zeroline=False, gridcolor="lightgray"),
             yaxis=dict(showgrid=True, zeroline=False, gridcolor="lightgray"),
-            yaxis_title="Percent (%)",
-            xaxis_title="Gross Weight (g)",
+            yaxis_title="Percent (%)" if normalize else "Making Value (AED)",
+            xaxis_title="Item Weight (g)",
             width=1000,
             height=600,
         )
