@@ -199,7 +199,7 @@ class Plots:
         return fig
 
     @staticmethod
-    def sales_sunburst(sales: pd.DataFrame) -> None:
+    def sales_sunburst(sales: pd.DataFrame, y: str = "MakingValue") -> None:
         """
         Generates a sunburst chart of the sales data.
 
@@ -212,7 +212,7 @@ class Plots:
         fig = px.sunburst(
             sales,
             path=["PurityCategory", "ItemCategory"],
-            values="MakingValue",
+            values=y,
             color="PurityCategory",
             color_discrete_map={
                 "18K": Color.BLUE1.value,
@@ -225,14 +225,22 @@ class Plots:
         )
 
         # Formatting
-        fig.update_traces(textinfo="label+percent entry", textfont_size=10)
+        fig.update_traces(
+            texttemplate=(
+                "<b>%{label} (%{percentEntry:.2%})</b><br>"
+                + "%{value:,.2f}"
+                + f" {'AED' if y == 'MakingValue' else 'g'}"
+            ),
+            textinfo="text",
+            textfont_size=10,
+        )
         fig.update_layout(margin=dict(t=50, l=25, r=25, b=25))
 
         # Present chart
         return fig
 
     @staticmethod
-    def monthwise_sales_by_purity(sales: pd.DataFrame) -> None:
+    def monthwise_sales(sales: pd.DataFrame, y: str = "MakingValue") -> None:
         """
         Generates a month-wise sales chart by purity using Streamlit.
 
@@ -245,7 +253,7 @@ class Plots:
         fig = px.bar(
             sales,
             x=sales.Month,
-            y=sales.MakingValue,
+            y=sales[y],
             color=sales.PurityCategory,
             custom_data=["PurityCategory"],
             color_discrete_map={
@@ -274,10 +282,7 @@ class Plots:
 
         base_ymax = 130000
         base_ythresh = 100000
-        sales_max = (
-            sales.groupby(sales.Month).agg({"MakingValue": "sum"})["MakingValue"].max()
-            * 1.2
-        )
+        sales_max = sales.groupby(sales.Month).agg({y: "sum"})[y].max() * 1.2
         fig.update_layout(
             xaxis_title="Month",
             yaxis_title="Making Charges (AED)",
@@ -288,7 +293,7 @@ class Plots:
                     0,
                     (
                         max(base_ymax, sales_max)
-                        if sales_max > base_ythresh
+                        if sales_max > base_ythresh and y != "GrossWt"
                         else sales_max
                     ),
                 ],

@@ -70,17 +70,31 @@ class Components:
                 help="Check to normalize the histogram to show percentages.",
             )
 
-        st.subheader("Making Charges Purity Distribution")
+        st.subheader("Making Charges Distribution")
         q, k = st.columns([1, 1])
         with q:
-            fig = Plots.monthwise_sales_by_purity(Analytics.monthly_sales_data(df))
+            fig = Plots.monthwise_sales(Analytics.monthly_sales_data(df))
             st.plotly_chart(fig, use_container_width=True)
 
         with k:
             fig = Plots.sales_sunburst(Analytics.sales_item_sunburst_data(df))
             st.plotly_chart(fig, use_container_width=True)
 
+        st.subheader("Volume Distribution")
+
+        q, k = st.columns([1, 1])
+        with q:
+            fig2 = Plots.monthwise_sales(Analytics.monthly_sales_data(df), y="GrossWt")
+            st.plotly_chart(fig2, use_container_width=True, key="mg")
+
+        with k:
+            fig3 = Plots.sales_sunburst(
+                Analytics.sales_item_sunburst_data(df, on="GrossWt"), y="GrossWt"
+            )
+            st.plotly_chart(fig3, use_container_width=True, key="sg")
+
         st.subheader("Weekly Sales Analysis")
+
         q, k = st.columns([1, 1])
         with q:
             fig = Plots.weekly_monthly_boxplot(df)

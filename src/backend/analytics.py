@@ -152,7 +152,9 @@ class Analytics:
         return df
 
     @staticmethod
-    def sales_item_sunburst_data(df: pd.DataFrame) -> pd.DataFrame:
+    def sales_item_sunburst_data(
+        df: pd.DataFrame, on: str = "MakingValue"
+    ) -> pd.DataFrame:
         """
         Generate a DataFrame for sunburst chart data by item.
 
