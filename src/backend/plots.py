@@ -281,13 +281,26 @@ class Plots:
         base_ymax = 130000
         base_ythresh = 100000
         sales_max = sales.groupby(sales.Month).agg({y: "sum"})[y].max() * 1.2
+
+        kwargs = {
+            "showspikes": True,
+            "spikecolor": "black",
+            "spikethickness": 1,
+            "spikedash": "solid",
+            "spikemode": "across",  # Extend across full height
+            "spikesnap": "cursor",
+        }
         fig.update_layout(
+            hovermode="closest",
             xaxis_title="Month",
             yaxis_title=(
                 f"Making Charges (AED)" if y == "MakingValue" else "Gross Weight (g)"
             ),
             legend_title_text="Purity Category",
-            xaxis=dict(tickformat="%b %Y"),
+            xaxis=dict(
+                tickformat="%b %Y",
+                # **kwargs,
+            ),
             yaxis=dict(
                 range=[
                     0,
@@ -297,6 +310,8 @@ class Plots:
                         else sales_max
                     ),
                 ],
+                **kwargs,
+                dtick=20000 if y == "MakingValue" else 2000,
             ),
         )
 
