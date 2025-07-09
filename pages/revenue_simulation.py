@@ -14,24 +14,28 @@ COLOR_C = "#dedb18"  # 21K
 
 sales = ss["wingold"].sales
 cb = ss["cashbook"].cashbook
-cost_per_gram = (
-    cb[cb["Cost Type"] == "VARIABLE"]["Debit"].sum() / sales["GrossWt"].sum()
-)
 
 
 def karat_settings(karat: str, value=0.3):
+    """
+    Create settings for each karat type in the sidebar.
+
+    Args:
+        karat (str): The karat type (e.g., "18", "22", "21").
+        value (float): The default share of volume for the karat type.
+    """
     with st.container(border=True):
         st.markdown(f"##### {karat}K Settings")
-        share = st.slider(
+        st.slider(
             f"{karat}K Share of Volume",
             min_value=0.0,
             max_value=1.0,
-            step=0.05,
+            step=0.01,
             value=value,
             key=f"share_{karat}k",
         )
 
-        rate = st.number_input(
+        st.number_input(
             f"{karat}K Rate",
             min_value=0.0,
             step=0.5,
@@ -43,15 +47,17 @@ def karat_settings(karat: str, value=0.3):
 with st.sidebar:
     with st.container(border=True):
         st.markdown("### Simulation Settings")
-        karat_settings("18", value=0.3)
-        karat_settings("22", value=0.5)
-        karat_settings("21", value=0.2)
+        karat_settings("18", value=0.29)
+        karat_settings("22", value=0.69)
+        karat_settings("21", value=0.02)
 
+        # Universal settings
         cost_per_gram = st.number_input(
             "Cost per Gram (AED)",
             min_value=0.0,
             step=0.1,
-            value=cost_per_gram,
+            value=cb[cb["Cost Type"] == "VARIABLE"]["Debit"].sum()
+            / sales["GrossWt"].sum(),
             key="cost_per_gram",
         )
 
@@ -64,16 +70,19 @@ with st.sidebar:
             key="breakeven",
         )
 
-        unit_revenue = 0
-        for karat in ["18k", "22k", "21k"]:
-            unit_revenue += ss[f"share_{karat}"] * ss[f"rate_{karat}"]
-
+        # Ensure that the volume allows for breakeven calculation
+        unit_revenue = sum(
+            [
+                ss[f"share_{karat}"] * ss[f"rate_{karat}"]
+                for karat in ["18k", "22k", "21k"]
+            ]
+        )
         breakeven_volume = breakeven / (1000 * (unit_revenue - cost_per_gram))
         max_vol = st.number_input(
             "Max Volume (kg)",
             min_value=0.0,
             step=1.0,
-            value=max(20.0, np.ceil(breakeven_volume + 1)),
+            value=max(30.0, np.ceil(breakeven_volume + 1)),
             key="max_vol",
         )
 
@@ -92,11 +101,9 @@ def simulate():
         share = ss[f"share_{karat}"]
         rate = ss[f"rate_{karat}"]
         rev.extend(volume * (1000 * share * rate))
-
-    fig = go.Figure()
-
     total_revenue = volume * unit_revenue * 1000
     total_costs = (volume * (1000 * cost_per_gram)) + ss.breakeven
+
     # Split into before / after breakeven
     idx = np.searchsorted(volume, breakeven_volume)
 
@@ -108,6 +115,8 @@ def simulate():
     rev_after = total_revenue[idx:]
     costs_after = total_costs[idx:]
 
+    # ----- Plotting ---- #
+    fig = go.Figure()
     # Add Revenue (Loss)
     fig.add_trace(
         go.Scatter(
@@ -150,7 +159,8 @@ def simulate():
             mode="lines",
             name="Total Costs (Profit)",
             fill="tonexty",
-            line=dict(color="#7CF32C", width=2, dash="solid"),
+            fillcolor="#7CF32C",
+            line=dict(color="#F3722C", width=2, dash="solid"),
         )
     )
 
@@ -182,11 +192,11 @@ def simulate():
     )
 
     fig.update_traces(
-        hovertemplate="<b>Volume: %{x:,.1f} kg<br>Revenue%{y:,.2f} AED</b><extra></extra>",
+        hovertemplate="<b>Volume: %{x:,.1f} kg<br>AED%{y:,.2f} AED</b><extra></extra>",
     )
     st.latex(
-        r"y = 1000x \left(\sum_{i=1}^{n} (K_{i,\text{share}} \cdot K_{i,\text{rate}}) - \text{cost per gram}\right)"
-        + f"= {1000*(unit_revenue - cost_per_gram):,.2f}x"
+        r"y_{\text{revenue}} = 1000x \left(\sum_{i=1}^{n} (K_{i,\text{share}} \cdot K_{i,\text{rate}}) - \text{cost per gram}\right)"
+        + f"= {1000*(unit_revenue):,.2f}x"
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -216,8 +226,6 @@ else:
             )
         )
         fig.update_layout(
-            # title="Revenue Distribution by Karat",
-            # legend=dict(x=0.01, y=0.99),
             template="plotly_white",
             height=650,
         )
