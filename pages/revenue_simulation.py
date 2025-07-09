@@ -9,44 +9,33 @@ import os
 load_dotenv()
 
 
+def karat_settings(karat: str, value=0.3):
+    with st.container(border=True):
+        st.markdown(f"##### {karat}K Settings")
+        share = st.slider(
+            f"{karat}K Share of Volume",
+            min_value=0.0,
+            max_value=1.0,
+            step=0.05,
+            value=value,
+            key=f"share_{karat}k",
+        )
+
+        rate = st.number_input(
+            f"{karat}K Rate",
+            min_value=0.0,
+            step=0.5,
+            value=float(os.getenv(f"{karat}K_rate", 0.0)),
+            key=f"rate_{karat}k",
+        )
+
+
 with st.sidebar:
     with st.container(border=True):
         st.markdown("### Simulation Settings")
-        share_18 = st.slider(
-            "18K Share of Volume",
-            min_value=0.0,
-            max_value=1.0,
-            step=0.05,
-            value=0.3,
-            key="share_18k",
-            on_change=lambda: ss.update({"share_22k": 1 - ss.share_18k}),
-        )
-
-        share_22 = st.slider(
-            "22K Share of Volume",
-            min_value=0.0,
-            max_value=1.0,
-            step=0.05,
-            value=0.7,
-            key="share_22k",
-            on_change=lambda: ss.update({"share_18k": 1 - ss.share_22k}),
-        )
-
-        rate_18 = st.number_input(
-            "18K Rate",
-            min_value=0.0,
-            step=0.5,
-            value=float(os.getenv("18K_rate")),
-            key="rate_18k",
-        )
-
-        rate_22 = st.number_input(
-            "22K Rate",
-            min_value=0.0,
-            step=0.5,
-            value=float(os.getenv("22K_rate")),
-            key="rate_22k",
-        )
+        karat_settings("18", value=0.3)
+        karat_settings("22", value=0.5)
+        karat_settings("21", value=0.2)
 
         max_vol = st.number_input(
             "Max Volume (kg)",
@@ -65,93 +54,110 @@ with st.sidebar:
             key="breakeven",
         )
 
+
 # ----- SIMULATION LOGIC ----- #
-revenue = {
-    "18k": [],
-    "22k": [],
-}
+def simulate():
+    revenue = {
+        "18k": [],
+        "22k": [],
+        "21k": [],
+    }
 
-volume = np.arange(0, ss.max_vol + 0.5, 0.2)
+    volume = np.arange(0, ss.max_vol + 0.5, 0.2)
 
-for kg in volume:
-    for karat, rev in revenue.items():
-        share = ss[f"share_{karat}"]
-        rate = ss[f"rate_{karat}"]
-        rev.append(kg * 1000 * share * rate)
+    for kg in volume:
+        for karat, rev in revenue.items():
+            share = ss[f"share_{karat}"]
+            rate = ss[f"rate_{karat}"]
+            rev.append(kg * 1000 * share * rate)
 
-total_revenue = np.array(revenue["18k"]) + np.array(revenue["22k"])
-
-unit_revenue = 1000 * ((ss.share_18k * ss.rate_18k) + (ss.share_22k * ss.rate_22k))
-
-fig = go.Figure()
-
-# Add 18K
-fig.add_trace(
-    go.Scatter(
-        x=volume,
-        y=revenue["18k"],
-        mode="lines",
-        name="18K Revenue",
-        line=dict(color="#EABDB3", width=2, dash="dot"),
+    total_revenue = (
+        np.array(revenue["18k"]) + np.array(revenue["22k"]) + np.array(revenue["21k"])
     )
-)
 
-# Add 22K
-fig.add_trace(
-    go.Scatter(
-        x=volume,
-        y=revenue["22k"],
-        mode="lines",
-        name="22K Revenue",
-        line=dict(color="#4FBC75", width=2, dash="dot"),
+    unit_revenue = 0
+    for karat in revenue.keys():
+        unit_revenue += ss[f"share_{karat}"] * ss[f"rate_{karat}"]
+    unit_revenue *= 1000  # Convert to per kg
+
+    fig = go.Figure()
+
+    # Add 18K
+    fig.add_trace(
+        go.Scatter(
+            x=volume,
+            y=revenue["18k"],
+            mode="lines",
+            name="18K Revenue",
+            fill="tonexty",
+            line=dict(color="#EABDB3", width=2, dash="dot"),
+        )
     )
-)
 
-# Add Total Revenue
-fig.add_trace(
-    go.Scatter(
-        x=volume,
-        y=total_revenue,
-        mode="lines",
-        name="Total Revenue",
-        fill="tozeroy",
-        fillcolor="rgba(116, 141, 169, 0.2)",
-        line=dict(color="#778da9", width=2, dash="solid"),
+    # Add 22K
+    fig.add_trace(
+        go.Scatter(
+            x=volume,
+            y=np.array(revenue["22k"]) + np.array(revenue["18k"]),
+            mode="lines",
+            fill="tonexty",
+            name="22K Revenue",
+            line=dict(color="#4FBC75", width=2, dash="dot"),
+        )
     )
-)
 
-# Add breakeven line
-fig.add_hline(
-    y=ss.breakeven,
-    line_dash="dash",
-    line_color="#F3722C",
-    annotation_text="Break-Even Point",
-    annotation_position="top left",
-)
+    # Add 21K
+    fig.add_trace(
+        go.Scatter(
+            x=volume,
+            y=np.array(revenue["21k"])
+            + np.array(revenue["22k"])
+            + np.array(revenue["18k"]),
+            mode="lines",
+            fill="tonexty",
+            name="21K Revenue",
+            line=dict(color="#CCCE2E", width=2, dash="dot"),
+        )
+    )
 
-# Add vertical line for when total revenue equals breakeven
-breakeven_volume = volume[np.where(total_revenue >= ss.breakeven)[0][0]]
-fig.add_vline(
-    x=breakeven_volume,
-    line_dash="dash",
-    line_color="#F3722C",
-    annotation_text=f"Break-Even Volume: {breakeven_volume:.1f} kg",
-    annotation_position="top right",
-)
+    # Add breakeven line
+    fig.add_hline(
+        y=ss.breakeven,
+        line_dash="dash",
+        line_color="#F3722C",
+        annotation_text="Break-Even Point",
+        annotation_position="top left",
+    )
 
-fig.update_layout(
-    xaxis_title="Volume (kg)",
-    yaxis_title="Revenue (AED)",
-    legend=dict(x=0.01, y=0.99),
-    template="plotly_white",
-    width=800,
-    height=650,
-)
+    # Add vertical line for when total revenue equals breakeven
+    breakeven_volume = volume[np.where(total_revenue >= ss.breakeven)[0][0]]
+    fig.add_vline(
+        x=breakeven_volume,
+        line_dash="dash",
+        line_color="#F3722C",
+        annotation_text=f"Break-Even Volume: {breakeven_volume:.1f} kg",
+        annotation_position="top right",
+    )
 
-fig.update_traces(
-    hovertemplate="<b>Volume: %{x:,.1f} kg<br>Revenue%{y:,.2f} AED</b><extra></extra>",
-)
+    fig.update_layout(
+        xaxis_title="Volume (kg)",
+        yaxis_title="Revenue (AED)",
+        legend=dict(x=0.01, y=0.99),
+        template="plotly_white",
+        width=800,
+        height=650,
+    )
 
-st.title("Revenue Simulation")
-st.info(f"1 KG = {unit_revenue:,.2f} AED")
-st.plotly_chart(fig, use_container_width=False)
+    fig.update_traces(
+        hovertemplate="<b>Volume: %{x:,.1f} kg<br>Revenue%{y:,.2f} AED</b><extra></extra>",
+    )
+
+    st.title("Revenue Simulation")
+    st.info(f"1 KG = {unit_revenue:,.2f} AED")
+    st.plotly_chart(fig, use_container_width=False)
+
+
+if ss.get("share_18k") + ss.get("share_22k") + ss.get("share_21k") != 1.0:
+    st.error("The total share of 18K, 22K, and 21K must equal 1.0.")
+else:
+    simulate()
