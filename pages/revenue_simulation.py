@@ -68,12 +68,12 @@ with st.sidebar:
         for karat in ["18k", "22k", "21k"]:
             unit_revenue += ss[f"share_{karat}"] * ss[f"rate_{karat}"]
 
-        min_volume = breakeven / (1000 * (unit_revenue - cost_per_gram))
+        breakeven_volume = breakeven / (1000 * (unit_revenue - cost_per_gram))
         max_vol = st.number_input(
             "Max Volume (kg)",
             min_value=0.0,
             step=1.0,
-            value=max(20.0, np.ceil(min_volume + 1)),
+            value=max(20.0, np.ceil(breakeven_volume + 1)),
             key="max_vol",
         )
 
@@ -95,52 +95,62 @@ def simulate():
 
     fig = go.Figure()
 
-    # Add 18K
+    total_revenue = volume * unit_revenue * 1000
+    total_costs = (volume * (1000 * cost_per_gram)) + ss.breakeven
+    # Split into before / after breakeven
+    idx = np.searchsorted(volume, breakeven_volume)
+
+    vol_before = volume[: idx + 1]
+    rev_before = total_revenue[: idx + 1]
+    costs_before = total_costs[: idx + 1]
+
+    vol_after = volume[idx:]
+    rev_after = total_revenue[idx:]
+    costs_after = total_costs[idx:]
+
+    # Add Revenue (Loss)
     fig.add_trace(
         go.Scatter(
-            x=volume,
-            y=revenue["18k"],
+            x=vol_before,
+            y=rev_before,
             mode="lines",
-            name="18K Revenue",
-            fill="tonexty",
+            name="Gross Revenue",
             line=dict(color=COLOR_A, width=2, dash="dot"),
         )
     )
 
-    # Add 22K
+    # Add Costs (Loss)
     fig.add_trace(
         go.Scatter(
-            x=volume,
-            y=np.array(revenue["22k"]) + np.array(revenue["18k"]),
+            x=vol_before,
+            y=costs_before,
             mode="lines",
+            name="Total Costs (Loss)",
             fill="tonexty",
-            name="22K Revenue",
+            line=dict(color="#F3722C", width=2, dash="solid"),
+        )
+    )
+
+    # Add Revenue (Profit)
+    fig.add_trace(
+        go.Scatter(
+            x=vol_after,
+            y=rev_after,
+            mode="lines",
+            name="Gross Revenue",
             line=dict(color=COLOR_B, width=2, dash="dot"),
         )
     )
 
-    # Add 21K
+    # Add Costs (Profit)
     fig.add_trace(
         go.Scatter(
-            x=volume,
-            y=np.array(revenue["21k"])
-            + np.array(revenue["22k"])
-            + np.array(revenue["18k"]),
+            x=vol_after,
+            y=costs_after,
             mode="lines",
+            name="Total Costs (Profit)",
             fill="tonexty",
-            name="21K Revenue",
-            line=dict(color=COLOR_C, width=2, dash="dot"),
-        )
-    )
-
-    # Add total costs
-    fig.add_trace(
-        go.Scatter(
-            x=volume,
-            y=(volume * (1000 * cost_per_gram)) + ss.breakeven,
-            mode="lines",
-            name="Total Costs",
-            line=dict(color="#F3722C", width=2, dash="solid"),
+            line=dict(color="#7CF32C", width=2, dash="solid"),
         )
     )
 
@@ -149,16 +159,16 @@ def simulate():
         y=ss.breakeven,
         line_dash="dash",
         line_color="#A7A6A6",
-        annotation_text="Break-Even Point",
-        annotation_position="top left",
+        annotation_text="Fixed Costs",
+        annotation_position="bottom right",
     )
 
-    # Add vertical line for when total revenue equals breakeven
+    # Add vertical line for when total revenue equals total costs
     fig.add_vline(
-        x=min_volume,
+        x=breakeven_volume,
         line_dash="dash",
         line_color="#F3722C",
-        annotation_text=f"Break-Even Volume: {min_volume:.1f} kg",
+        annotation_text=f"Break-Even Volume: {breakeven_volume:.1f} kg",
         annotation_position="top right",
     )
 
