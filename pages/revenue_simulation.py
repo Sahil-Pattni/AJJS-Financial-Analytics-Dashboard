@@ -55,14 +55,6 @@ with st.sidebar:
             key="cost_per_gram",
         )
 
-        max_vol = st.number_input(
-            "Max Volume (kg)",
-            min_value=0,
-            step=1,
-            value=20,
-            key="max_vol",
-        )
-
         breakeven = st.number_input(
             "Breakeven Point (AED)",
             min_value=0,
@@ -70,6 +62,19 @@ with st.sidebar:
             step=100,
             value=int(os.getenv("monthly_fixed_costs")),
             key="breakeven",
+        )
+
+        unit_revenue = 0
+        for karat in ["18k", "22k", "21k"]:
+            unit_revenue += ss[f"share_{karat}"] * ss[f"rate_{karat}"]
+
+        min_volume = breakeven / (1000 * (unit_revenue - cost_per_gram))
+        max_vol = st.number_input(
+            "Max Volume (kg)",
+            min_value=0.0,
+            step=1.0,
+            value=max(20.0, min_volume + 1),
+            key="max_vol",
         )
 
 
@@ -91,11 +96,6 @@ def simulate():
     total_revenue = (
         np.array(revenue["18k"]) + np.array(revenue["22k"]) + np.array(revenue["21k"])
     )
-
-    unit_revenue = 0
-    for karat in revenue.keys():
-        unit_revenue += ss[f"share_{karat}"] * ss[f"rate_{karat}"]
-    unit_revenue *= 1000  # Convert to per kg
 
     fig = go.Figure()
 
@@ -148,6 +148,8 @@ def simulate():
 
     # Add vertical line for when total revenue equals breakeven
     breakeven_volume = volume[np.where(total_revenue >= ss.breakeven)[0][0]]
+    if breakeven_volume > ss.max_vol:
+        ss.max_vol = breakeven_volume + 1
     fig.add_vline(
         x=breakeven_volume,
         line_dash="dash",
