@@ -10,7 +10,7 @@ load_dotenv()
 
 COLOR_A = "#457b9d"  # 18K
 COLOR_B = "#a8dadc"  # 22K
-COLOR_C = "#e63946"  # 21K
+COLOR_C = "#dedb18"  # 21K
 
 sales = ss["wingold"].sales
 cb = ss["cashbook"].cashbook
@@ -73,7 +73,7 @@ with st.sidebar:
             "Max Volume (kg)",
             min_value=0.0,
             step=1.0,
-            value=max(20.0, min_volume + 1),
+            value=max(20.0, np.ceil(min_volume + 1)),
             key="max_vol",
         )
 
@@ -88,14 +88,10 @@ def simulate():
 
     volume = np.arange(0, ss.max_vol + 0.5, 0.2)
 
-    for kg in volume:
-        for karat, rev in revenue.items():
-            share = ss[f"share_{karat}"]
-            rate = ss[f"rate_{karat}"]
-            rev.append((kg * 1000 * share) * (rate - ss.cost_per_gram))
-    total_revenue = (
-        np.array(revenue["18k"]) + np.array(revenue["22k"]) + np.array(revenue["21k"])
-    )
+    for karat, rev in revenue.items():
+        share = ss[f"share_{karat}"]
+        rate = ss[f"rate_{karat}"]
+        rev.extend(volume * (1000 * share * rate))
 
     fig = go.Figure()
 
@@ -137,24 +133,32 @@ def simulate():
         )
     )
 
+    # Add total costs
+    fig.add_trace(
+        go.Scatter(
+            x=volume,
+            y=(volume * (1000 * cost_per_gram)) + ss.breakeven,
+            mode="lines",
+            name="Total Costs",
+            line=dict(color="#F3722C", width=2, dash="solid"),
+        )
+    )
+
     # Add breakeven line
     fig.add_hline(
         y=ss.breakeven,
         line_dash="dash",
-        line_color="#F3722C",
+        line_color="#A7A6A6",
         annotation_text="Break-Even Point",
         annotation_position="top left",
     )
 
     # Add vertical line for when total revenue equals breakeven
-    breakeven_volume = volume[np.where(total_revenue >= ss.breakeven)[0][0]]
-    if breakeven_volume > ss.max_vol:
-        ss.max_vol = breakeven_volume + 1
     fig.add_vline(
-        x=breakeven_volume,
+        x=min_volume,
         line_dash="dash",
         line_color="#F3722C",
-        annotation_text=f"Break-Even Volume: {breakeven_volume:.1f} kg",
+        annotation_text=f"Break-Even Volume: {min_volume:.1f} kg",
         annotation_position="top right",
     )
 
@@ -170,7 +174,10 @@ def simulate():
     fig.update_traces(
         hovertemplate="<b>Volume: %{x:,.1f} kg<br>Revenue%{y:,.2f} AED</b><extra></extra>",
     )
-    st.info(f"1 KG = {unit_revenue:,.2f} AED")
+    st.latex(
+        r"y = 1000x \left(\sum_{i=1}^{n} (K_{i,\text{share}} \cdot K_{i,\text{rate}}) - \text{cost per gram}\right)"
+        + f"= {1000*(unit_revenue - cost_per_gram):,.2f}x"
+    )
     st.plotly_chart(fig, use_container_width=True)
 
     return revenue

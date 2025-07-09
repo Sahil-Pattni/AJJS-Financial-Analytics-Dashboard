@@ -180,7 +180,7 @@ class Plots:
             ),
             title=" ",
             values="Debit",
-            color="Super-Category",
+            color="Super-Category" if not variable else "Sub-Category",
             color_discrete_sequence=px.colors.qualitative.Pastel,
             hover_data={"Super-Category": False, "Sub-Category": False, "Debit": False},
         )
