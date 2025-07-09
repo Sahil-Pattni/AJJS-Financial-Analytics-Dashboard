@@ -1,5 +1,6 @@
 from datetime import datetime
 import pandas as pd
+from src.readers.cashbook import CashbookReader
 
 
 class Analytics:
@@ -107,12 +108,11 @@ class Analytics:
         return monthly_data
 
     @staticmethod
-    def fixed_cost_pie_chart_data(
-        cashbook: pd.DataFrame, fixed_costs: pd.DataFrame
-    ) -> pd.DataFrame:
+    def fixed_cost_pie_chart_data(cashbookReader: CashbookReader) -> pd.DataFrame:
         """
         Generates pie chart data of the expense categories.
         """
+        cashbook = cashbookReader.cashbook
         # Exclude rent and salaries
         expenses = (
             cashbook[
@@ -129,7 +129,7 @@ class Analytics:
         )
 
         # Derive fixed costs up until the current month
-        fc = fixed_costs.copy()
+        fc = cashbookReader.fixed_costs.copy()
         fc["Debit"] = fc["Debit"] / 12
 
         expenses["Debit"] = expenses["Debit"] / 12
@@ -140,6 +140,18 @@ class Analytics:
         expenses.sort_values(by=["Cost Type", "Debit"], ascending=False, inplace=True)
 
         return expenses
+
+    @staticmethod
+    def variable_cost_pie_chart_data(cashbookReader: CashbookReader) -> pd.DataFrame:
+        """
+        Generates pie chart data of the expense categories.
+        """
+        cashbook = cashbookReader.cashbook
+        cashbook = cashbook[cashbook["Cost Type"] == "VARIABLE"].copy()
+
+        cashbook.sort_values(by=["Cost Type", "Debit"], ascending=False, inplace=True)
+
+        return cashbook
 
     @staticmethod
     def monthly_sales_data(df: pd.DataFrame):

@@ -154,7 +154,9 @@ class Plots:
         return fig
 
     @staticmethod
-    def fixed_costs_sunburst(expenses: pd.DataFrame, ignore_salaries=True) -> None:
+    def costs_sunburst(
+        expenses: pd.DataFrame, ignore_salaries=True, variable=False
+    ) -> None:
         """
         Generates a sunburst chart of the expense categories.
         Ignores salaries.
@@ -171,7 +173,11 @@ class Plots:
                 if ignore_salaries
                 else expenses
             ),
-            path=["Super-Category", "Sub-Category"],
+            path=(
+                ["Super-Category", "Sub-Category"]
+                if not variable
+                else ["Sub-Category", "Category"]
+            ),
             title=" ",
             values="Debit",
             color="Super-Category",

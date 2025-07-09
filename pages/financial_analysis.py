@@ -30,12 +30,20 @@ fig = Plots.income_expenses_chart(
 )
 st.plotly_chart(fig, use_container_width=True)
 
+p, q = st.columns(2)
+with p:
+    st.subheader("Fixed Costs")
+    fig = Plots.costs_sunburst(
+        Analytics.fixed_cost_pie_chart_data(ss["cashbook"]),
+        ignore_salaries=ignore_salaries,
+    )
+    st.plotly_chart(fig, use_container_width=True, on_click="rerun")
 
-st.subheader("Expenses Expansion")
-fig = Plots.fixed_costs_sunburst(
-    Analytics.fixed_cost_pie_chart_data(
-        ss["cashbook"].cashbook, ss["cashbook"].fixed_costs
-    ),
-    ignore_salaries=ignore_salaries,
-)
-st.plotly_chart(fig, use_container_width=True, on_click="rerun")
+with q:
+    st.subheader("Variable Costs")
+    fig = Plots.costs_sunburst(
+        Analytics.variable_cost_pie_chart_data(ss["cashbook"]),
+        ignore_salaries=False,
+        variable=True,
+    )
+    st.plotly_chart(fig, use_container_width=True, on_click="rerun")
