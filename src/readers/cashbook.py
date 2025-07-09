@@ -50,6 +50,7 @@ class CashbookReader:
             "Debit",
             "Credit",
             "Balance",
+            "Category",
             "Super-Category",
             "Sub-Category",
             "Cost Type",

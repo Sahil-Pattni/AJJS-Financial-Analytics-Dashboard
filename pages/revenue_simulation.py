@@ -8,6 +8,16 @@ import os
 
 load_dotenv()
 
+COLOR_A = "#457b9d"  # 18K
+COLOR_B = "#a8dadc"  # 22K
+COLOR_C = "#e63946"  # 21K
+
+sales = ss["wingold"].sales
+cb = ss["cashbook"].cashbook
+cost_per_gram = (
+    cb[cb["Cost Type"] == "VARIABLE"]["Debit"].sum() / sales["GrossWt"].sum()
+)
+
 
 def karat_settings(karat: str, value=0.3):
     with st.container(border=True):
@@ -36,6 +46,14 @@ with st.sidebar:
         karat_settings("18", value=0.3)
         karat_settings("22", value=0.5)
         karat_settings("21", value=0.2)
+
+        cost_per_gram = st.number_input(
+            "Cost per Gram (AED)",
+            min_value=0.0,
+            step=0.1,
+            value=cost_per_gram,
+            key="cost_per_gram",
+        )
 
         max_vol = st.number_input(
             "Max Volume (kg)",
@@ -69,8 +87,7 @@ def simulate():
         for karat, rev in revenue.items():
             share = ss[f"share_{karat}"]
             rate = ss[f"rate_{karat}"]
-            rev.append(kg * 1000 * share * rate)
-
+            rev.append((kg * 1000 * share) * (rate - ss.cost_per_gram))
     total_revenue = (
         np.array(revenue["18k"]) + np.array(revenue["22k"]) + np.array(revenue["21k"])
     )
@@ -90,7 +107,7 @@ def simulate():
             mode="lines",
             name="18K Revenue",
             fill="tonexty",
-            line=dict(color="#EABDB3", width=2, dash="dot"),
+            line=dict(color=COLOR_A, width=2, dash="dot"),
         )
     )
 
@@ -102,7 +119,7 @@ def simulate():
             mode="lines",
             fill="tonexty",
             name="22K Revenue",
-            line=dict(color="#4FBC75", width=2, dash="dot"),
+            line=dict(color=COLOR_B, width=2, dash="dot"),
         )
     )
 
@@ -116,7 +133,7 @@ def simulate():
             mode="lines",
             fill="tonexty",
             name="21K Revenue",
-            line=dict(color="#CCCE2E", width=2, dash="dot"),
+            line=dict(color=COLOR_C, width=2, dash="dot"),
         )
     )
 
@@ -151,13 +168,40 @@ def simulate():
     fig.update_traces(
         hovertemplate="<b>Volume: %{x:,.1f} kg<br>Revenue%{y:,.2f} AED</b><extra></extra>",
     )
-
-    st.title("Revenue Simulation")
     st.info(f"1 KG = {unit_revenue:,.2f} AED")
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, use_container_width=True)
+
+    return revenue
 
 
 if ss.get("share_18k") + ss.get("share_22k") + ss.get("share_21k") != 1.0:
     st.error("The total share of 18K, 22K, and 21K must equal 1.0.")
 else:
-    simulate()
+    st.title("Revenue Simulation")
+    q, y = st.columns([1, 1])
+    with q:
+        revenue = simulate()
+    with y:
+        fig = go.Figure()
+        fig.add_trace(
+            go.Pie(
+                labels=["18K", "22K", "21K"],
+                values=[
+                    revenue["18k"][-1],
+                    revenue["22k"][-1],
+                    revenue["21k"][-1],
+                ],
+                hole=0.4,
+                textinfo="label+percent",
+                marker=dict(colors=[COLOR_A, COLOR_B, COLOR_C]),
+            )
+        )
+        fig.update_layout(
+            # title="Revenue Distribution by Karat",
+            # legend=dict(x=0.01, y=0.99),
+            template="plotly_white",
+            height=650,
+        )
+
+        st.info("Revenue Distribution by Karat")
+        st.plotly_chart(fig, use_container_width=True)
