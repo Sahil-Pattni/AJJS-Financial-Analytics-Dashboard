@@ -24,8 +24,31 @@ class CashbookReader:
         self.__fixed_costs = self.__read_categories_file(fixed_costs)
 
         # Read sheets
-        workbook = self.__read_workbook(filepath)
-        self._mcb, self._qtr, self._cashbook = self.__read_sheets(workbook)
+        self._workbook = self.__read_workbook(filepath)
+        self._mcb, self._qtr, self._cashbook = self.__read_sheets(self._workbook)
+
+        # Read supplier accounts
+        kwargs = {
+            "workbook": self._workbook,
+            "cols": [
+                "Date",
+                "Invoice No.",
+                "Description",
+                "VAT Amount",
+                "Total",
+            ],
+        }
+        self.read_supplier_account(sheet_name="NEVERTITI SHJ", **kwargs)
+        self.read_supplier_account(
+            sheet_name="NEVERTITI (DUBAI)", category_name="NEVERTITI DUBAI", **kwargs
+        )
+
+        self.read_supplier_account(
+            sheet_name="MUBARAK TOOLS", category_name="MUBARAK", **kwargs
+        )
+
+        self.read_supplier_account(sheet_name="HARSHAD PRIME", **kwargs)
+        self.read_supplier_account(sheet_name="HARSHAD", **kwargs)
 
         # Restrict to this year
         if only_this_year:
@@ -59,6 +82,16 @@ class CashbookReader:
         self._cashbook = self._cashbook[col_structure]
         self._mcb = self._mcb[col_structure]
         self._qtr = self._qtr[col_structure]
+
+    @property
+    def workbook(self):
+        """
+        Returns the decrypted workbook object.
+
+        Returns:
+            io.BytesIO: The decrypted workbook object.
+        """
+        return self._workbook
 
     @property
     def cashbook(self) -> pd.DataFrame:
@@ -175,6 +208,65 @@ class CashbookReader:
         df["Category"] = df["Category"].str.strip().str.upper()
 
         return df[pd.notna(df["Date"])]
+
+    def read_supplier_account(
+        self, workbook, sheet_name: str, cols: List[str], category_name: str = None
+    ):
+        """
+        Reads a specific supplier account sheet from the workbook.
+
+        Args:
+            workbook: The decrypted workbook object.
+            sheet_name (str): The name of the sheet to read.
+            cols (List[str]): List of column names to read.
+            category_name (str, optional): The name of the supplier category. Defaults to None.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the supplier account data.
+        """
+        # Replace in cashbook
+        if category_name is None:
+            category_name = sheet_name
+
+        df = pd.read_excel(
+            workbook,
+            sheet_name=sheet_name,
+            header=3,
+            names=cols,
+            usecols="A:E",
+            dtype={
+                "Date": "datetime64[ns]",
+                "Invoice No.": "string",
+                "Details": "string",
+                "Total": "float64",
+            },
+        )
+
+        df["Total"] = df["Total"].fillna(0)
+        # Keep records from this year only
+        df = df[df.Date >= pd.Timestamp("2025-01-01")]
+        # Keep only Debit records
+        df = df[df["Total"] > 0]
+
+        # Transform to match structure of cashbook
+        df.rename(columns={"Total": "Debit", "Description": "Details"}, inplace=True)
+        df["Credit"] = 0.0
+        df["Super-Category"] = "Operations"
+        df["Sub-Category"] = "Suppliers"
+        df["Category"] = category_name
+        df["Cost Type"] = "VARIABLE"
+        df["QTR"] = False
+
+        df.drop(columns=["VAT Amount", "Invoice No."], inplace=True)
+
+        # Remove all records with this category from cashbook
+        self._cashbook = self._cashbook[self._cashbook["Category"] != category_name]
+
+        # Add to cashbook
+        self._cashbook = pd.concat(
+            [self._cashbook, df],
+            ignore_index=True,
+        )
 
     def __assign_categories(self, book):
         book["Sub-Category"] = book.apply(
