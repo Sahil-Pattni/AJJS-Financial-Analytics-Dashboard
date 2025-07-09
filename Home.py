@@ -14,10 +14,6 @@ logging.basicConfig(
     force=True,
 )
 
-DEMO = False  # Set to True for demo mode
-if sys.argv[1].lower() == "demo":
-    DEMO = True
-    logging.info("Running in demo mode.")
 
 # Wide
 st.set_page_config(layout="wide")
