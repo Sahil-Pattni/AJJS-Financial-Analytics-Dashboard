@@ -412,18 +412,22 @@ class Plots:
         # Backfill
         weekly["RollingAvg"] = weekly["RollingAvg"].bfill()
 
-        fig.add_trace(
-            go.Scatter(
-                x=weekly["DocDate"],
-                y=savgol_filter(weekly["RollingAvg"], 10, 2),
-                mode="lines",
-                name="Weekly Average",
-                line=dict(color=Color.DARK_RED.value, width=2),
-                hovertemplate=(
-                    "Week: %{x}<br>" + "Average Gross Weight: %{y:.2f} g<br>"
-                ),
+        # Ignore savgol_filter if it fails
+        try:
+            fig.add_trace(
+                go.Scatter(
+                    x=weekly["DocDate"],
+                    y=savgol_filter(weekly["RollingAvg"], 10, 2),
+                    mode="lines",
+                    name="Weekly Average",
+                    line=dict(color=Color.DARK_RED.value, width=2),
+                    hovertemplate=(
+                        "Week: %{x}<br>" + "Average Gross Weight: %{y:.2f} g<br>"
+                    ),
+                )
             )
-        )
+        except:
+            logging.error("Error adding rolling average line to histogram.")
 
         fig.update_traces(
             marker_line_width=2,

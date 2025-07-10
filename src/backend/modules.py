@@ -4,6 +4,7 @@ import pandas as pd
 from src.backend.analytics import Analytics
 from src.backend.plots import Plots
 import plotly.express as px
+from datetime import datetime
 
 
 class Components:
@@ -78,6 +79,39 @@ class Components:
     def generate_sales_page(df: pd.DataFrame):
         # Generate the settings
         Components.sidebar_settings(df)
+
+        # Section 0: Key Metrics
+        with st.container(border=True):
+            monthly = df.groupby("Month").agg({"GrossWt": "sum", "MakingValue": "sum"})
+            # Exclude current month if it is not complete
+            if datetime.now().strftime("%Y-%m") == monthly.index[-1]:
+                monthly = monthly[:-1]
+
+            st.header("Key Metrics")
+            a, b, c = st.columns(3)
+            with a:
+                st.metric(
+                    "Monthly Volume", f"{monthly['GrossWt'].mean():,.2f} g", border=True
+                )
+            with b:
+                st.metric(
+                    "Monthly Revenue",
+                    f"{monthly['MakingValue'].mean():,.2f} AED",
+                    border=True,
+                )
+            with c:
+                top_driver = (
+                    df.groupby("ItemCategory")
+                    .agg({"GrossWt": "sum", "MakingValue": "sum"})
+                    .sort_values(by="MakingValue", ascending=False)
+                    .reset_index()
+                ).iloc[0]
+                st.metric(
+                    "Top Driver",
+                    f"{top_driver['ItemCategory']}",
+                    delta=f"{top_driver['MakingValue']:,.2f} AED --- {top_driver['GrossWt']:,.2f} g",
+                    border=True,
+                )
 
         # Section 1: Volume
         with st.container(border=True):
