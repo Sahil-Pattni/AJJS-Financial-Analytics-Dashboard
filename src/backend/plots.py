@@ -569,7 +569,8 @@ class Plots:
         return fig
 
     @staticmethod
-    def rolling_purity_performance(sales: pd.DataFrame):
+    def rolling_purity_performance(sales: pd.DataFrame, item="None"):
+        sales = sales if item == "None" else sales[sales.ItemCategory == item]
         k18 = Analytics.segment_performance(sales, "18K")
         k22 = Analytics.segment_performance(sales, "22K")
         k21 = Analytics.segment_performance(sales, "21K")

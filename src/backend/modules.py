@@ -211,14 +211,20 @@ class Components:
                         "Normalize Heatmap",
                         value=False,
                         key="normalize_heatmap",
-                        help="Check to normalize the heatmap to show percentages.",
+                        help="Normalize to show frequency by item category",
                     )
                     fig = Plots.item_mc_heatmap(
                         df, purity=ss.purity_heatmap, normalize=ss.normalize_heatmap
                     )
                     st.plotly_chart(fig, use_container_width=True)
-
-            # Section 2.3: Rolling Purity Performance
-            st.subheader("3-Week Rolling Purity Performance")
-            fig = Plots.rolling_purity_performance(df)
-            st.plotly_chart(fig, use_container_width=True)
+                with b:
+                    st.header("3-Week Rolling Average: Revenue")
+                    st.selectbox(
+                        "Select Item",
+                        ["None"] + df["ItemCategory"].unique().tolist(),
+                        index=0,
+                        key="item_rolling",
+                    )
+                    # Section 2.3: Rolling Purity Performance
+                    fig = Plots.rolling_purity_performance(df, item=ss.item_rolling)
+                    st.plotly_chart(fig, use_container_width=True)
