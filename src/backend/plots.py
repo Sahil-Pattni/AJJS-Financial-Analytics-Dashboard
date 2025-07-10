@@ -655,6 +655,11 @@ class Plots:
             color_continuous_scale=px.colors.sequential.Plasma,
         )
         fig.update_xaxes(side="bottom")
+
+        # Make axes labels and ticks bold and larger
+        fig.update_xaxes(title_font=dict(size=14), tickfont=dict(size=12))
+        fig.update_yaxes(title_font=dict(size=14), tickfont=dict(size=12))
+
         fig.update_layout(
             height=600,
             width=1000,
