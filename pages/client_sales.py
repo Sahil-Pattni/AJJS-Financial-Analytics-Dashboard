@@ -24,7 +24,7 @@ ss["END_DATE"] = st.sidebar.date_input(
     max_value=df["DocDate"].max().date(),
 )
 
-Components.generate_sales_analytics(
+Components.generate_sales_page(
     df[
         (df.TAName == ss["CLIENT"])
         & (df.DocDate >= pd.to_datetime(ss["START_DATE"]))

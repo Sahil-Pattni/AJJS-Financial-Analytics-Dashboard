@@ -192,13 +192,13 @@ def simulate():
     )
 
     fig.update_traces(
-        hovertemplate="<b>Volume: %{x:,.1f} kg<br>AED%{y:,.2f} AED</b><extra></extra>",
+        hovertemplate="<b>Volume: %{x:,.1f} kg<br>AED %{y:,.2f} AED</b><extra></extra>",
     )
+    st.plotly_chart(fig, use_container_width=True)
     st.latex(
         r"y_{\text{revenue}} = 1000x \left(\sum_{i=1}^{n} (K_{i,\text{share}} \cdot K_{i,\text{rate}}) - \text{cost per gram}\right)"
         + f"= {1000*(unit_revenue):,.2f}x"
     )
-    st.plotly_chart(fig, use_container_width=True)
 
     return revenue
 
@@ -207,7 +207,7 @@ if ss.get("share_18k") + ss.get("share_22k") + ss.get("share_21k") != 1.0:
     st.error("The total share of 18K, 22K, and 21K must equal 1.0.")
 else:
     st.title("Revenue Simulation")
-    q, y = st.columns([1, 1])
+    q, y = st.columns([2, 1])
     with q:
         revenue = simulate()
     with y:
