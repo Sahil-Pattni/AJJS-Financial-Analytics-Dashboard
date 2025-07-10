@@ -197,8 +197,26 @@ class Components:
                     Components.sales_agg(df, "PurityCategory"), use_container_width=True
                 )
 
-                fig = Plots.item_mc_heatmap(df)
-                st.plotly_chart(fig, use_container_width=True)
+            with st.container(border=True):
+                a, b = st.columns(2)
+                with a:
+                    st.header("Popular Weight Ranges")
+                    st.selectbox(
+                        "Select Purity",
+                        ["None"] + df["PurityCategory"].unique().tolist(),
+                        index=0,
+                        key="purity_heatmap",
+                    )
+                    st.toggle(
+                        "Normalize Heatmap",
+                        value=False,
+                        key="normalize_heatmap",
+                        help="Check to normalize the heatmap to show percentages.",
+                    )
+                    fig = Plots.item_mc_heatmap(
+                        df, purity=ss.purity_heatmap, normalize=ss.normalize_heatmap
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
 
             # Section 2.3: Rolling Purity Performance
             st.subheader("3-Week Rolling Purity Performance")

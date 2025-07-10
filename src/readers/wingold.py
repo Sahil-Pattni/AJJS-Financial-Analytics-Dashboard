@@ -125,6 +125,21 @@ class WingoldReader:
             self._transactions["GrossWt"] / self._transactions["QtyInPcs"]
         )
 
+        # Weight Ranges
+        bins = [0, 20, 30, 40, 50, 100, 150, float("inf")]
+        labels = [
+            "<20g",
+            "20-30g",
+            "30-40g",
+            "40-50g",
+            "50-100g",
+            "100-150g",
+            ">150g",
+        ]
+        self._transactions["WeightRange"] = pd.cut(
+            self._transactions["ItemWeight"], bins=bins, labels=labels, right=False
+        )
+
     def __extract_sales(self) -> pd.DataFrame:
         """
         Extracts sales data from the transactions DataFrame, including sales returns.

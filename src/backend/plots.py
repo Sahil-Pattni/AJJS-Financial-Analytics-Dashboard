@@ -610,7 +610,7 @@ class Plots:
         return fig
 
     @staticmethod
-    def item_mc_heatmap(sales: pd.DataFrame) -> None:
+    def item_mc_heatmap(sales: pd.DataFrame, purity, normalize=False) -> None:
         """
         Generates a heatmap of item making charges by item category and purity.
 
@@ -619,24 +619,41 @@ class Plots:
         """
 
         # ----- Set weight ranges ----- #
-        df = sales.copy()
-        bins = [0, 10, 30, 50, 100, float("inf")]
-        labels = ["<10g", "10-30g", "30-50g", "50-100g", ">100g"]
-        df["WeightRange"] = pd.cut(
-            df["ItemWeight"], bins=bins, labels=labels, right=False
+        df = (
+            sales.copy()
+            if purity == "None"
+            else sales[sales.PurityCategory == purity].copy()
         )
+
         df = (
             df.groupby(["ItemCategory", "WeightRange"])
             .agg({"MakingValue": "sum"})
             .reset_index()
         )
+        df["Value_norm"] = df.groupby("ItemCategory")["MakingValue"].transform(
+            lambda x: (x - x.min()) / (x.max() - x.min())
+        )
+
+        # Calculate zmax
+        top = df.sort_values("MakingValue", ascending=False)["MakingValue"]
+        a, b = top.iloc[0], top.iloc[1] if len(top) > 1 else (top.iloc[0], 0)
+        weight = 10
+        zmax = (a + (weight * b)) / (weight + 1)
+
+        # Variable for normalization
+        value = "Value_norm" if normalize else "MakingValue"
+        color_label = "Frequency" if normalize else "Making Value"
+        zmax = df[value].max() if normalize else zmax
+
+        # Plot
         fig = px.imshow(
-            df.pivot(index="ItemCategory", columns="WeightRange", values="MakingValue"),
-            labels=dict(x="Weight Range", y="Item Category", color="Making Value"),
-            zmax=100000,
+            df.pivot(index="ItemCategory", columns="WeightRange", values=value),
+            labels=dict(x="Item Weight", y="Item Category", color=color_label),
+            # zmax=df.sort_values("MakingValue", ascending=False).iloc[1]["MakingValue"],
+            zmax=zmax,
             color_continuous_scale=px.colors.sequential.Plasma,
         )
-        fig.update_xaxes(side="top")
+        fig.update_xaxes(side="bottom")
         fig.update_layout(
             height=600,
             width=1000,
