@@ -2,6 +2,9 @@ import streamlit as st
 
 
 def present_navigation():
+    """
+    Presents the navigation menu for the application.
+    """
     pages = {
         "Control Panel": [st.Page("pages/upload.py", title="Upload Files")],
         "Analysis": [

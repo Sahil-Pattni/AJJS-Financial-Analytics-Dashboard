@@ -17,6 +17,12 @@ class TransactionType(Enum):
 
 class WingoldReader:
     def __init__(self, filepath: str):
+        """
+        Initializes the WingoldReader with the path to the Wingold database file.
+
+        Args:
+            filepath (str): Path to the Wingold .mdb file.
+        """
         # Set up tables
         self._transactions = self.__read_table(filepath, "BinCard")
         self._accounts = self.__read_table(filepath, "Party")
@@ -37,7 +43,10 @@ class WingoldReader:
         """
         return self._sales
 
-    def __preprocess(self):
+    def __preprocess(self) -> None:
+        """
+        Preprocesses the transactions DataFrame to clean and format the data.
+        """
         logging.info("Preprocessing transactions...")
         # Keep only required columns
         self._transactions = self._transactions[
@@ -117,6 +126,12 @@ class WingoldReader:
         )
 
     def __extract_sales(self) -> pd.DataFrame:
+        """
+        Extracts sales data from the transactions DataFrame, including sales returns.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing sales data with returns as negative values.
+        """
         # ----- Extract Sales Data ----- #
         logging.info("Extracting sales data...")
         # Convert sales returns to negative values

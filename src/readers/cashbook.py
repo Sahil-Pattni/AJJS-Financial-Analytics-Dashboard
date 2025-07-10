@@ -178,7 +178,16 @@ class CashbookReader:
         with open(filepath, "r") as file:
             return json.load(file)
 
-    def __read_workbook(self, filepath: str):
+    def __read_workbook(self, filepath: str) -> io.BytesIO:
+        """
+        Reads an encrypted Excel workbook and returns a decrypted workbook object.
+
+        Args:
+            filepath (str): Path to the encrypted Excel file.
+
+        Returns:
+            io.BytesIO: A BytesIO object containing the decrypted workbook.
+        """
         decrypted_workbook = io.BytesIO()
         with open(filepath, "rb") as file:
             office_file = msoffcrypto.OfficeFile(file)
@@ -186,7 +195,18 @@ class CashbookReader:
             office_file.decrypt(decrypted_workbook)
         return decrypted_workbook
 
-    def __read_sheet(self, workbook, sheet_name: str, cols: List[str]):
+    def __read_sheet(self, workbook, sheet_name: str, cols: List[str]) -> pd.DataFrame:
+        """
+        Reads a specific sheet from the workbook and returns a DataFrame.
+
+        Args:
+            workbook: The decrypted workbook object.
+            sheet_name (str): The name of the sheet to read.
+            cols (List[str]): List of column names to read.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the data from the specified sheet.
+        """
         df = pd.read_excel(
             workbook,
             sheet_name=sheet_name,
@@ -268,7 +288,13 @@ class CashbookReader:
             ignore_index=True,
         )
 
-    def __assign_categories(self, book):
+    def __assign_categories(self, book) -> None:
+        """
+        Assigns categories, sub-categories, and cost types to the cashbook DataFrame.
+
+        Args:
+            book (pd.DataFrame): The cashbook DataFrame to which categories will be assigned.
+        """
         book["Sub-Category"] = book.apply(
             lambda row: self.__assign_subcategory(
                 row,
@@ -366,7 +392,16 @@ class CashbookReader:
                     return vals["key"]
         return "Uncategorized"
 
-    def __read_fixed_costs(self, fixed_costs: str):
+    def __read_fixed_costs(self, fixed_costs: str) -> pd.DataFrame:
+        """
+        Reads fixed costs from a JSON file and returns a DataFrame.
+
+        Args:
+            fixed_costs (str): Path to the JSON file containing fixed costs.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing fixed costs.
+        """
         fc = pd.DataFrame.from_dict(
             fixed_costs, orient="index", columns=["Super-Category", "Cost"]
         )

@@ -14,10 +14,9 @@ logging.basicConfig(
     force=True,
 )
 
-
-# Wide
 st.set_page_config(layout="wide")
 
+# Flag to check if the user has already processed data
 if "redirected" not in ss:
     ss["redirected"] = False
 

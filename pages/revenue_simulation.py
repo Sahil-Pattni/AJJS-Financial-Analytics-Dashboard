@@ -16,7 +16,7 @@ sales = ss["wingold"].sales
 cb = ss["cashbook"].cashbook
 
 
-def karat_settings(karat: str, value=0.3):
+def karat_settings(karat: str, value=0.3) -> None:
     """
     Create settings for each karat type in the sidebar.
 
@@ -44,6 +44,7 @@ def karat_settings(karat: str, value=0.3):
         )
 
 
+# ----- SIDEBAR SETTINGS ----- #
 with st.sidebar:
     with st.container(border=True):
         st.markdown("### Simulation Settings")
@@ -87,8 +88,8 @@ with st.sidebar:
         )
 
 
-# ----- SIMULATION LOGIC ----- #
-def simulate():
+# ----- PLOT BREAKEVEN CHART ----- #
+def plot_breakeven():
     revenue = {
         "18k": [],
         "22k": [],
@@ -208,9 +209,11 @@ if ss.get("share_18k") + ss.get("share_22k") + ss.get("share_21k") != 1.0:
 else:
     st.title("Revenue Simulation")
     q, y = st.columns([2, 1])
+
     with q:
-        revenue = simulate()
+        revenue = plot_breakeven()
     with y:
+        # ----- Revenue Distribution Pie Chart ----- #
         fig = go.Figure()
         fig.add_trace(
             go.Pie(

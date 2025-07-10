@@ -9,7 +9,17 @@ from datetime import datetime
 
 class Components:
     @staticmethod
-    def sales_agg(df: pd.DataFrame, colname: str):
+    def sales_agg(df: pd.DataFrame, colname: str) -> pd.DataFrame:
+        """
+        Generate a summary DataFrame for sales aggregation based on the specified column name.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing sales data.
+            colname (str): The column name to group by for aggregation.
+
+        Returns:
+            pd.DataFrame: A styled DataFrame with aggregated sales data.
+        """
         return (
             df.groupby(colname)
             .agg(
@@ -41,7 +51,10 @@ class Components:
         )
 
     @staticmethod
-    def sidebar_settings(df: pd.DataFrame):
+    def sidebar_settings(df: pd.DataFrame) -> None:
+        """
+        Generate sidebar settings for the sales analytics page.
+        """
         with st.sidebar.container(border=True):
             st.subheader("Item Weight Distribution")
             st.selectbox(
@@ -76,7 +89,13 @@ class Components:
             )
 
     @staticmethod
-    def generate_sales_page(df: pd.DataFrame):
+    def generate_sales_page(df: pd.DataFrame) -> None:
+        """
+        Generate the sales page components.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing sales data.
+        """
         # Generate the settings
         Components.sidebar_settings(df)
 

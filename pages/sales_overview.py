@@ -5,17 +5,20 @@ from src.backend.modules import Components
 
 df = ss["wingold"].sales.copy()
 
+min_date = df["DocDate"].min().date()
+max_date = df["DocDate"].max().date()
+
 ss["START_DATE"] = st.sidebar.date_input(
     "Start Date",
-    value=df["DocDate"].min().date(),
-    min_value=df["DocDate"].min().date(),
-    max_value=df["DocDate"].max().date(),
+    value=min_date,
+    min_value=min_date,
+    max_value=max_date,
 )
 ss["END_DATE"] = st.sidebar.date_input(
     "End Date",
-    value=df["DocDate"].max().date(),
-    min_value=df["DocDate"].min().date(),
-    max_value=df["DocDate"].max().date(),
+    value=max_date,
+    min_value=min_date,
+    max_value=max_date,
 )
 
 Components.generate_sales_page(
