@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -6,6 +7,8 @@ import logging
 import streamlit as st
 from scipy.signal import savgol_filter
 from datetime import datetime
+
+from src.backend.analytics import Analytics
 
 
 class Color(Enum):
@@ -563,4 +566,81 @@ class Plots:
         )
 
         # Present chart
+        return fig
+
+    @staticmethod
+    def rolling_purity_performance(sales: pd.DataFrame):
+        k18 = Analytics.segment_performance(sales, "18K")
+        k22 = Analytics.segment_performance(sales, "22K")
+        k21 = Analytics.segment_performance(sales, "21K")
+        # Plot for all three as lines
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=k18["Day"],
+                y=k18["RollingAvg"],
+                mode="lines",
+                name="18K",
+                line=dict(color="blue"),
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=k22["Day"], y=k22["RollingAvg"], name="22K", line=dict(color="orange")
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=k21["Day"], y=k21["RollingAvg"], name="21K", line=dict(color="green")
+            )
+        )
+
+        fig.update_traces(
+            mode="lines",
+            marker=dict(symbol="circle", size=8),
+        )
+        fig.update_layout(
+            xaxis_title="Day",
+            yaxis_title="Making Value",
+            legend=dict(x=0.99, y=0.99),
+            template="plotly_white",
+            height=600,
+            width=1000,
+        )
+        return fig
+
+    @staticmethod
+    def item_mc_heatmap(sales: pd.DataFrame) -> None:
+        """
+        Generates a heatmap of item making charges by item category and purity.
+
+        Args:
+            sales (pd.DataFrame): DataFrame containing sales data.
+        """
+
+        # ----- Set weight ranges ----- #
+        df = sales.copy()
+        bins = [0, 10, 30, 50, 100, float("inf")]
+        labels = ["<10g", "10-30g", "30-50g", "50-100g", ">100g"]
+        df["WeightRange"] = pd.cut(
+            df["ItemWeight"], bins=bins, labels=labels, right=False
+        )
+        df = (
+            df.groupby(["ItemCategory", "WeightRange"])
+            .agg({"MakingValue": "sum"})
+            .reset_index()
+        )
+        fig = px.imshow(
+            df.pivot(index="ItemCategory", columns="WeightRange", values="MakingValue"),
+            labels=dict(x="Weight Range", y="Item Category", color="Making Value"),
+            zmax=100000,
+            color_continuous_scale=px.colors.sequential.Plasma,
+        )
+        fig.update_xaxes(side="top")
+        fig.update_layout(
+            height=600,
+            width=1000,
+            template="plotly_white",
+        )
+
         return fig

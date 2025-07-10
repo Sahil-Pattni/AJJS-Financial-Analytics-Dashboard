@@ -196,3 +196,11 @@ class Components:
                 st.dataframe(
                     Components.sales_agg(df, "PurityCategory"), use_container_width=True
                 )
+
+                fig = Plots.item_mc_heatmap(df)
+                st.plotly_chart(fig, use_container_width=True)
+
+            # Section 2.3: Rolling Purity Performance
+            st.subheader("3-Week Rolling Purity Performance")
+            fig = Plots.rolling_purity_performance(df)
+            st.plotly_chart(fig, use_container_width=True)

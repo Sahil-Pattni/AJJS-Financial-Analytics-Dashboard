@@ -192,3 +192,20 @@ class Analytics:
         df["MakingRt"] = df["MakingValue"] / df["GrossWt"]
         df = df[df.GrossWt > 0]
         return df
+
+    @staticmethod
+    def segment_performance(sales, category):
+        """
+        Generate a 3 week rolling average of making value and gross weight
+        for a given purity category.
+        """
+        df = (
+            sales[sales.PurityCategory == category]
+            .groupby("Day")
+            .agg({"MakingValue": "sum", "GrossWt": "sum"})
+            .reset_index()
+            .sort_values(by="Day", ascending=True)
+        )
+        df["RollingAvg"] = df["MakingValue"].rolling(window=21, min_periods=1).mean()
+
+        return df
