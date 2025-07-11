@@ -4,11 +4,9 @@ import pandas as pd
 from src.backend.modules import Components
 
 df = ss["wingold"].sales.copy()
-
+clients = df["TAName"].sort_values().unique().tolist()
 ss["CLIENT"] = st.sidebar.selectbox(
-    "Select Client",
-    df["TAName"].sort_values().unique(),
-    index=12,
+    "Select Client", clients, index=clients.index("Meena Jewellers LLC")
 )
 
 min_date = df["DocDate"].min().date()
@@ -27,6 +25,7 @@ ss["END_DATE"] = st.sidebar.date_input(
     max_value=max_date,
 )
 
+st.title(ss.CLIENT)
 Components.generate_sales_page(
     df[
         (df.TAName == ss["CLIENT"])

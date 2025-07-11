@@ -144,6 +144,43 @@ class Components:
                     border=True,
                 )
 
+        # Section 2.2: Item Making Charges Heatmap and Rolling Purity Performance
+        a, b = st.columns(2)
+        with a:
+            with st.container(border=True):
+                st.header("Weight Range Profitability")
+                x, y = st.columns([2, 1])
+                with x:
+                    st.selectbox(
+                        "Select Purity",
+                        ["None"] + df["PurityCategory"].unique().tolist(),
+                        index=0,
+                        key="purity_heatmap",
+                    )
+                with y:
+                    st.toggle(
+                        "Normalize Heatmap",
+                        value=False,
+                        key="normalize_heatmap",
+                        help="Normalize to show frequency by item category",
+                    )
+                fig = Plots.item_mc_heatmap(
+                    df, purity=ss.purity_heatmap, normalize=ss.normalize_heatmap
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        with b:
+            with st.container(border=True):
+                st.header("3-Week Rolling Average: Revenue")
+                st.selectbox(
+                    "Select Item",
+                    ["None"] + df["ItemCategory"].unique().tolist(),
+                    index=0,
+                    key="item_rolling",
+                )
+                # Section 2.3: Rolling Purity Performance
+                fig = Plots.rolling_purity_performance(df, item=ss.item_rolling)
+                st.plotly_chart(fig, use_container_width=True)
+
         # Section 1: Volume
         with st.container(border=True):
             st.header("Volume Analysis")
@@ -167,21 +204,6 @@ class Components:
                 fig = Plots.sales_histogram(df)
                 st.plotly_chart(fig, use_container_width=True)
 
-            with k:
-                kwargs = {
-                    "item_category": (
-                        ss.item if ss.get("item", None) != "None" else None
-                    ),
-                    "purity": ss.purity if ss.get("purity", None) != "None" else None,
-                }
-                fig = Plots.item_weight_distribution(
-                    df,
-                    nbins=ss.nbins,
-                    normalize=ss.normalize,
-                    **kwargs,
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
         # Section 2: Revenue
         with st.container(border=True):
             st.header("Revenue Analysis")
@@ -194,43 +216,6 @@ class Components:
             with k:
                 fig = Plots.sales_sunburst(Analytics.sales_item_sunburst_data(df))
                 st.plotly_chart(fig, use_container_width=True)
-
-            # Section 2.2: Item Making Charges Heatmap and Rolling Purity Performance
-            a, b = st.columns(2)
-            with a:
-                with st.container(border=True):
-                    st.header("Weight Range Profitability")
-                    x, y = st.columns([2, 1])
-                    with x:
-                        st.selectbox(
-                            "Select Purity",
-                            ["None"] + df["PurityCategory"].unique().tolist(),
-                            index=0,
-                            key="purity_heatmap",
-                        )
-                    with y:
-                        st.toggle(
-                            "Normalize Heatmap",
-                            value=False,
-                            key="normalize_heatmap",
-                            help="Normalize to show frequency by item category",
-                        )
-                    fig = Plots.item_mc_heatmap(
-                        df, purity=ss.purity_heatmap, normalize=ss.normalize_heatmap
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-            with b:
-                with st.container(border=True):
-                    st.header("3-Week Rolling Average: Revenue")
-                    st.selectbox(
-                        "Select Item",
-                        ["None"] + df["ItemCategory"].unique().tolist(),
-                        index=0,
-                        key="item_rolling",
-                    )
-                    # Section 2.3: Rolling Purity Performance
-                    fig = Plots.rolling_purity_performance(df, item=ss.item_rolling)
-                    st.plotly_chart(fig, use_container_width=True)
 
             # Section 2.3: Making Rate Breakdown
             x, y = st.columns(2)

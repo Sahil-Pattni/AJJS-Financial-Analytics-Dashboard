@@ -24,7 +24,6 @@ def show_uploaders():
 
 def main():
     cashbook, wingold = show_uploaders()
-
     if not cashbook or not wingold:
         st.warning("Please upload your cashbook and Wingold files.")
         st.stop()
@@ -45,7 +44,7 @@ def main():
         )
 
         ss["wingold"] = WingoldReader("data/uploaded/wingold.mdb")
-        st.switch_page("pages/financial_analysis.py")
+        st.switch_page("pages/sales_overview.py")
 
 
 if __name__ == "__main__":
