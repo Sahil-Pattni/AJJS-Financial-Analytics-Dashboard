@@ -25,8 +25,9 @@ class Color(Enum):
     GREEN2 = "#A7C1A8"
     GREEN3 = "#D1D8BE"
     OCEAN_BLUE = "#003049"
-    BLUE1 = "#415a77"
-    BLUE2 = "#778da9"
+    K18 = "#003049"
+    K22 = "#9f111a"
+    K21 = "#ffc300"
 
 
 class Plots:
@@ -225,9 +226,9 @@ class Plots:
             values=y,
             color="PurityCategory",
             color_discrete_map={
-                "18K": Color.BLUE1.value,
-                "21K": pastel[1],
-                "22K": Color.BLUE2.value,
+                "18K": Color.K18.value,
+                "21K": Color.K21.value,
+                "22K": Color.K22.value,
                 "9K": pastel[4],
             },
             width=800,
@@ -267,9 +268,9 @@ class Plots:
             color=sales.PurityCategory,
             custom_data=["PurityCategory"],
             color_discrete_map={
-                "18K": Color.BLUE1.value,
-                "21K": pastel[1],
-                "22K": Color.BLUE2.value,
+                "18K": Color.K18.value,
+                "21K": Color.K21.value,
+                "22K": Color.K22.value,
                 "9K": pastel[4],
             },
             # title="Monthly Sales by Purity",
@@ -372,7 +373,7 @@ class Plots:
         # Uncomment below to remove inside fill color
 
         fig.update_traces(
-            fillcolor="rgba(131,152,163,255)",
+            fillcolor="rgba(0, 48, 73,0.7)",
             line_width=2,
         )
 
@@ -399,7 +400,6 @@ class Plots:
             y="GrossWt",
             nbins=50,
             # labels={"MakingValue": "Making Value"},
-            color_discrete_sequence=[Color.OCEAN_BLUE.value],
             title="Weekly Distribution of Gross Weight",
         )
 
@@ -435,7 +435,7 @@ class Plots:
         fig.update_traces(
             marker_line_width=2,
             marker_line_color="black",
-            marker_color="rgba(131,152,163,255)",
+            marker_color="rgba(0, 48, 73,0.7)",
         )
 
         fig.update_layout(
@@ -495,7 +495,7 @@ class Plots:
         )
 
         fig.update_traces(
-            fillcolor="rgba(131,152,163,255)",
+            fillcolor="rgba(0, 48, 73,0.7)",
             line_width=2,
         )
 
@@ -547,7 +547,7 @@ class Plots:
 
         fig.update_traces(
             marker_line_width=2,
-            marker_color="rgba(131,152,163,255)",
+            marker_color="rgba(0, 48, 73,0.7)",
         )
 
         if normalize:
@@ -582,17 +582,23 @@ class Plots:
                 y=k18["RollingAvg"],
                 mode="lines",
                 name="18K",
-                line=dict(color="blue"),
+                line=dict(color=Color.K18.value, width=2),
             )
         )
         fig.add_trace(
             go.Scatter(
-                x=k22["Day"], y=k22["RollingAvg"], name="22K", line=dict(color="orange")
+                x=k22["Day"],
+                y=k22["RollingAvg"],
+                name="22K",
+                line=dict(color=Color.K22.value, width=2),
             )
         )
         fig.add_trace(
             go.Scatter(
-                x=k21["Day"], y=k21["RollingAvg"], name="21K", line=dict(color="green")
+                x=k21["Day"],
+                y=k21["RollingAvg"],
+                name="21K",
+                line=dict(color=Color.K21.value, width=2),
             )
         )
 

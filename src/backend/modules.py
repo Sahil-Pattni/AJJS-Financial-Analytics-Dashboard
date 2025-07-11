@@ -89,6 +89,29 @@ class Components:
             )
 
     @staticmethod
+    def __monthly_metric(df: pd.DataFrame, col: str, unit: str) -> None:
+        """
+        Generate a monthly metric for the specified column.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing sales data.
+            col (str): The column name to calculate the monthly metric for.
+        """
+        monthly = df.groupby("Month").agg({col: "sum"})
+        # Exclude current month if it is not complete
+        if datetime.now().strftime("%Y-%m") == monthly.index[-1]:
+            monthly = monthly[:-1]
+        prev_monthly = monthly[:-1].copy()
+        current = monthly[col].mean()
+        prev = prev_monthly[col].mean()
+        st.metric(
+            f"Average Monthly {col.replace('MakingValue', 'Revenue')}",
+            f"{monthly[col].mean():,.2f} {unit}",
+            delta=f"{((current - prev) * 100)/current:.2f}%",
+            border=True,
+        )
+
+    @staticmethod
     def generate_sales_page(df: pd.DataFrame) -> None:
         """
         Generate the sales page components.
@@ -101,25 +124,14 @@ class Components:
 
         # Section 0: Key Metrics
         with st.container(border=True):
-            monthly = df.groupby("Month").agg({"GrossWt": "sum", "MakingValue": "sum"})
-            # Exclude current month if it is not complete
-            if datetime.now().strftime("%Y-%m") == monthly.index[-1]:
-                monthly = monthly[:-1]
-
             st.header("Key Metrics")
             a, b, c = st.columns(3)
             with a:
-                st.metric(
-                    "Monthly Volume", f"{monthly['GrossWt'].mean():,.2f} g", border=True
-                )
+                Components.__monthly_metric(df, "GrossWt", "g")
             with b:
-                st.metric(
-                    "Monthly Revenue",
-                    f"{monthly['MakingValue'].mean():,.2f} AED",
-                    border=True,
-                )
+                Components.__monthly_metric(df, "MakingValue", "AED")
             with c:
-                top_driver = (
+                driver = (
                     df.groupby("ItemCategory")
                     .agg({"GrossWt": "sum", "MakingValue": "sum"})
                     .sort_values(by="MakingValue", ascending=False)
@@ -127,8 +139,8 @@ class Components:
                 ).iloc[0]
                 st.metric(
                     "Top Driver",
-                    f"{top_driver['ItemCategory']}",
-                    delta=f"{top_driver['MakingValue']:,.2f} AED --- {top_driver['GrossWt']:,.2f} g",
+                    f"{driver['ItemCategory']}",
+                    delta=f"{driver['MakingValue']:,.2f} AED --- {driver['GrossWt']:,.2f} g",
                     border=True,
                 )
 
