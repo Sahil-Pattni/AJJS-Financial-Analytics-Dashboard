@@ -27,17 +27,17 @@ class Analytics:
         # ----- Transform the data ----- #
         # Legitimate sales data
         monthly_making = (
-            sales_df.groupby(sales_df.DocDate.dt.to_period("M"))
+            sales_df.groupby(sales_df.Date.dt.to_period("M"))
             .agg(
                 {
-                    "MakingValue": "sum",
-                    "GoldGains": "sum",
+                    "Making Value": "sum",
+                    "Gold Gains": "sum",
                 }
             )
             .reset_index()
         )
-        monthly_making.columns = ["Month", "Making Charges", "GoldGains"]
-        monthly_making["GoldGains"] = monthly_making["GoldGains"] * gold_rate
+        monthly_making.columns = ["Month", "Making Charges", "Gold Gains"]
+        monthly_making["Gold Gains"] = monthly_making["Gold Gains"] * gold_rate
         monthly_making["Month"] = monthly_making["Month"].dt.to_timestamp()
 
         # QTR sales data
@@ -155,8 +155,8 @@ class Analytics:
 
     @staticmethod
     def monthly_sales_data(df: pd.DataFrame):
-        df = df.groupby(["Month", "PurityCategory"]).agg(
-            {"GrossWt": "sum", "PureWt": "sum", "MakingValue": "sum"}
+        df = df.groupby(["Month", "Purity Category"]).agg(
+            {"Gross Weight": "sum", "Pure Weight": "sum", "Making Value": "sum"}
         )
 
         df.reset_index(inplace=True)
@@ -165,7 +165,7 @@ class Analytics:
 
     @staticmethod
     def sales_item_sunburst_data(
-        df: pd.DataFrame, on: str = "MakingValue"
+        df: pd.DataFrame, on: str = "Making Value"
     ) -> pd.DataFrame:
         """
         Generate a DataFrame for sunburst chart data by item.
@@ -178,19 +178,19 @@ class Analytics:
         """
         # ----- Transform the data ----- #
         df = (
-            df.groupby(["PurityCategory", "ItemCategory", "ItemCode"])
+            df.groupby(["Purity Category", "Item Category", "Item Code"])
             .agg(
                 {
-                    "GrossWt": "sum",
-                    "PureWt": "sum",
-                    "MakingValue": "sum",
+                    "Gross Weight": "sum",
+                    "Pure Weight": "sum",
+                    "Making Value": "sum",
                 }
             )
-            .sort_values(by="MakingValue", ascending=False)
+            .sort_values(by="Making Value", ascending=False)
             .reset_index()
         )
-        df["MakingRt"] = df["MakingValue"] / df["GrossWt"]
-        df = df[df.GrossWt > 0]
+        df["Making Rate"] = df["Making Value"] / df["Gross Weight"]
+        df = df[df["Gross Weight"] > 0]
         return df
 
     @staticmethod
@@ -200,12 +200,12 @@ class Analytics:
         for a given purity category.
         """
         df = (
-            sales[sales.PurityCategory == category]
+            sales[sales["Purity Category"] == category]
             .groupby("Day")
-            .agg({"MakingValue": "sum", "GrossWt": "sum"})
+            .agg({"Making Value": "sum", "Gross Weight": "sum"})
             .reset_index()
             .sort_values(by="Day", ascending=True)
         )
-        df["RollingAvg"] = df["MakingValue"].rolling(window=21, min_periods=1).mean()
+        df["RollingAvg"] = df["Making Value"].rolling(window=21, min_periods=1).mean()
 
         return df

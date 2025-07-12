@@ -65,6 +65,19 @@ class Sales:
     Integrated sales data from multiple sources.
     """
 
+    required_columns = [
+        "Invoice Number",
+        "Date",
+        "Customer",
+        "Item Code",
+        "Purity",
+        "Unit Quantity",
+        "Gross Weight",
+        "Pure Weight",
+        "Making Rate",
+        "Making Value",
+    ]
+
     def __init__(self, df: pd.DataFrame = None):
         self._df: pd.DataFrame = df
 
@@ -72,13 +85,27 @@ class Sales:
     def data(self):
         return self._df
 
-    def add_data(self, df: pd.DataFrame):
+    @property
+    def column_names(self) -> List[str]:
+        """
+        Returns the list of required columns in the sales data.
+        """
+        return Sales.required_columns
+
+    def add_data(self, df: pd.DataFrame, mapping: dict = None):
         """
         Adds data to the `_df` attribute.
 
         Args:
             df (pd.DataFrame): The dataframe to add.
+            mapping (dict): A dictionary of column name mapping.
         """
+        if mapping:
+            if not all(k in Sales.required_columns for k in mapping.values()):
+                raise ValueError(
+                    "Not all required keys in mapping are present in the dataframe."
+                )
+            df = df.rename(columns=mapping)
         df = self.__preprocess(df)
         if self._df is None:
             self._df = df
@@ -87,14 +114,14 @@ class Sales:
 
     def __preprocess(self, df):
         # Date Attributes
-        df["Month"] = df["DocDate"].dt.to_period("M").astype(str)
-        df["Week"] = df["DocDate"].dt.to_period("W").astype(str)
-        df["Day"] = df["DocDate"].dt.to_period("D").astype(str)
+        df["Month"] = df["Date"].dt.to_period("M").astype(str)
+        df["Week"] = df["Date"].dt.to_period("W").astype(str)
+        df["Day"] = df["Date"].dt.to_period("D").astype(str)
 
         # Codes and Categories
-        df["ItemCode"] = df["ItemCode"].str.upper()
-        df["ItemCategory"] = df["ItemCode"].str.extract(r"\d{2}(\w+)")
-        df["ItemCategory"] = df["ItemCategory"].map(
+        df["Item Code"] = df["Item Code"].str.upper()
+        df["Item Category"] = df["Item Code"].str.extract(r"\d{2}(\w+)")
+        df["Item Category"] = df["Item Category"].map(
             {
                 "BRA": "Bracelets",
                 "CHA": "Chains",
@@ -105,13 +132,15 @@ class Sales:
         )
 
         # Purity
-        df["PurityCategory"] = df["Purity"].apply(Purity.get_purity_category)
-        df["ManufacturingPurity"] = df["Purity"].apply(Purity.get_manufacturing_purity)
+        df["Purity Category"] = df["Purity"].apply(Purity.get_purity_category)
+        df["Manufacturing Purity"] = df["Purity"].apply(Purity.get_manufacturing_purity)
 
         # Calculate gold earnings
-        df["GoldGains"] = (df.Purity - df.ManufacturingPurity) * df.GrossWt
+        df["Gold Gains"] = (df["Purity"] - df["Manufacturing Purity"]) * df[
+            "Gross Weight"
+        ]
 
-        df["ItemWeight"] = df["GrossWt"] / df["QtyInPcs"]
+        df["Item Weight"] = df["Gross Weight"] / df["Unit Quantity"]
 
         # Weight Ranges
         bins = [0, 20, 30, 40, 50, 100, 150, float("inf")]
@@ -124,8 +153,8 @@ class Sales:
             "100-150g",
             ">150g",
         ]
-        df["WeightRange"] = pd.cut(
-            df["ItemWeight"], bins=bins, labels=labels, right=False
+        df["Weight Range"] = pd.cut(
+            df["Item Weight"], bins=bins, labels=labels, right=False
         )
 
         return df

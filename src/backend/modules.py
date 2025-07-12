@@ -24,20 +24,20 @@ class Components:
             df.groupby(colname)
             .agg(
                 {
-                    "GrossWt": "sum",
-                    "PureWt": "sum",
-                    "MakingRt": "mean",
-                    "MakingValue": "sum",
+                    "Gross Weight": "sum",
+                    "Pure Weight": "sum",
+                    "Making Rate": "mean",
+                    "Making Value": "sum",
                 }
             )
-            .sort_values(by="MakingValue", ascending=False)
+            .sort_values(by="Making Value", ascending=False)
             # Rename cols
             .rename(
                 columns={
-                    "GrossWt": "Gross Weight",
-                    "PureWt": "Pure Weight",
-                    "MakingRt": "Making Rate",
-                    "MakingValue": "Making Value",
+                    "Gross Weight": "Gross Weight",
+                    "Pure Weight": "Pure Weight",
+                    "Making Rate": "Making Rate",
+                    "Making Value": "Making Value",
                 }
             )
             .style.format(
@@ -59,7 +59,7 @@ class Components:
             st.subheader("Item Weight Distribution")
             st.selectbox(
                 "Select Item",
-                df["ItemCategory"].unique().tolist() + ["None"],
+                df["Item Category"].unique().tolist() + ["None"],
                 index=0,
                 key="item",
                 help="Select an item to view its weight distribution.",
@@ -67,7 +67,7 @@ class Components:
 
             st.selectbox(
                 "Select Purity",
-                ["None"] + df["PurityCategory"].unique().tolist(),
+                ["None"] + df["Purity Category"].unique().tolist(),
                 index=0,
                 key="purity",
                 help="Select a purity category to filter the weight distribution.",
@@ -105,7 +105,7 @@ class Components:
         current = monthly[col].mean()
         prev = prev_monthly[col].mean()
         st.metric(
-            f"Average Monthly {col.replace('MakingValue', 'Revenue')}",
+            f"Average Monthly {col.replace('Making Value', 'Revenue')}",
             f"{monthly[col].mean():,.2f} {unit}",
             delta=f"{((current - prev) * 100)/current:.2f}%",
             border=True,
@@ -127,20 +127,20 @@ class Components:
             st.header("Key Metrics")
             a, b, c = st.columns(3)
             with a:
-                Components.__monthly_metric(df, "GrossWt", "g")
+                Components.__monthly_metric(df, "Gross Weight", "g")
             with b:
-                Components.__monthly_metric(df, "MakingValue", "AED")
+                Components.__monthly_metric(df, "Making Value", "AED")
             with c:
                 driver = (
-                    df.groupby("ItemCategory")
-                    .agg({"GrossWt": "sum", "MakingValue": "sum"})
-                    .sort_values(by="MakingValue", ascending=False)
+                    df.groupby("Item Category")
+                    .agg({"Gross Weight": "sum", "Making Value": "sum"})
+                    .sort_values(by="Making Value", ascending=False)
                     .reset_index()
                 ).iloc[0]
                 st.metric(
                     "Top Driver",
-                    f"{driver['ItemCategory']}",
-                    delta=f"{driver['MakingValue']:,.2f} AED --- {driver['GrossWt']:,.2f} g",
+                    f"{driver['Item Category']}",
+                    delta=f"{driver['Making Value']:,.2f} AED --- {driver['Gross Weight']:,.2f} g",
                     border=True,
                 )
 
@@ -153,7 +153,7 @@ class Components:
                 with x:
                     st.selectbox(
                         "Select Purity",
-                        ["None"] + df["PurityCategory"].unique().tolist(),
+                        ["None"] + df["Purity Category"].unique().tolist(),
                         index=0,
                         key="purity_heatmap",
                     )
@@ -173,7 +173,7 @@ class Components:
                 st.header("3-Week Rolling Average: Revenue")
                 st.selectbox(
                     "Select Item",
-                    ["None"] + df["ItemCategory"].unique().tolist(),
+                    ["None"] + df["Item Category"].unique().tolist(),
                     index=0,
                     key="item_rolling",
                 )
@@ -189,12 +189,13 @@ class Components:
             q, k = st.columns([1, 1])
             with q:
                 fig2 = Plots.monthwise_sales(
-                    Analytics.monthly_sales_data(df), y="GrossWt"
+                    Analytics.monthly_sales_data(df), y="Gross Weight"
                 )
                 st.plotly_chart(fig2, use_container_width=True, key="mg")
             with k:
                 fig3 = Plots.sales_sunburst(
-                    Analytics.sales_item_sunburst_data(df, on="GrossWt"), y="GrossWt"
+                    Analytics.sales_item_sunburst_data(df, on="Gross Weight"),
+                    y="Gross Weight",
                 )
                 st.plotly_chart(fig3, use_container_width=True, key="sg")
 
@@ -222,11 +223,12 @@ class Components:
             with x:
                 st.subheader("Making Rate by Item")
                 st.dataframe(
-                    Components.sales_agg(df, "ItemCode"), use_container_width=True
+                    Components.sales_agg(df, "Item Code"), use_container_width=True
                 )
 
             with y:
                 st.subheader("Making Rate by Purity")
                 st.dataframe(
-                    Components.sales_agg(df, "PurityCategory"), use_container_width=True
+                    Components.sales_agg(df, "Purity Category"),
+                    use_container_width=True,
                 )

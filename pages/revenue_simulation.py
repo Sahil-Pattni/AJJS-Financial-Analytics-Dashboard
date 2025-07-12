@@ -58,7 +58,7 @@ with st.sidebar:
             min_value=0.0,
             step=0.1,
             value=cb[cb["Cost Type"] == "VARIABLE"]["Debit"].sum()
-            / sales["GrossWt"].sum(),
+            / sales["Gross Weight"].sum(),
             key="cost_per_gram",
         )
 

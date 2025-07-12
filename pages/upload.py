@@ -51,8 +51,21 @@ def main():
             # Extract all sales data
             wingold = WingoldReader("data/uploaded/wingold.mdb")
             sales = Sales()
-            # Add sales data from all sources
-            sales.add_data(wingold.sales)
+
+            # Add sales data from WinGold
+            mapping = {
+                "DocNumber": "Invoice Number",
+                "DocDate": "Date",
+                "TAName": "Customer",
+                "ItemCode": "Item Code",
+                "Purity": "Purity",
+                "QtyInPcs": "Unit Quantity",
+                "GrossWt": "Gross Weight",
+                "PureWt": "Pure Weight",
+                "MakingRt": "Making Rate",
+                "MakingValue": "Making Value",
+            }
+            sales.add_data(wingold.sales, mapping=mapping)
 
             # Set sales
             ss["sales"] = sales

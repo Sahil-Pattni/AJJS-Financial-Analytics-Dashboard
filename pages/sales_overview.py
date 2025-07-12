@@ -5,8 +5,8 @@ from src.backend.modules import Components
 
 df = ss["sales"].data.copy()
 
-min_date = df["DocDate"].min().date()
-max_date = df["DocDate"].max().date()
+min_date = df["Date"].min().date()
+max_date = df["Date"].max().date()
 
 ss["START_DATE"] = st.sidebar.date_input(
     "Start Date",
@@ -23,7 +23,7 @@ ss["END_DATE"] = st.sidebar.date_input(
 
 Components.generate_sales_page(
     df[
-        (df.DocDate >= pd.to_datetime(ss["START_DATE"]))
-        & (df.DocDate <= pd.to_datetime(ss["END_DATE"]))
+        (df.Date >= pd.to_datetime(ss["START_DATE"]))
+        & (df.Date <= pd.to_datetime(ss["END_DATE"]))
     ]
 )

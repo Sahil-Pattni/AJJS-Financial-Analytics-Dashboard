@@ -48,7 +48,7 @@ class Plots:
             monthly_data["Net Profit"]
             if not convert_gold
             else (
-                (monthly_data["Total Income"] + monthly_data["GoldGains"])
+                (monthly_data["Total Income"] + monthly_data["Gold Gains"])
                 + monthly_data["Total Cost"]
             )
         )
@@ -72,10 +72,10 @@ class Plots:
         if convert_gold:
             fig.add_trace(
                 go.Bar(
-                    y=monthly_data["GoldGains"],
+                    y=monthly_data["Gold Gains"],
                     name="Gold Gains",
                     marker_color=Color.GREEN3.value,
-                    text=monthly_data["GoldGains"].apply(lambda x: f"{x:,.2f} AED"),
+                    text=monthly_data["Gold Gains"].apply(lambda x: f"{x:,.2f} AED"),
                     hovertemplate=("Month: %{x}<br>" + "Gold Gains: %{y:,.2f} AED<br>"),
                 )
             )
@@ -130,7 +130,7 @@ class Plots:
         )
 
         ymax = max(
-            (monthly_data["Total Income"].max() + monthly_data["GoldGains"].max())
+            (monthly_data["Total Income"].max() + monthly_data["Gold Gains"].max())
             * 1.3,
             400000,
         )
@@ -221,7 +221,7 @@ class Plots:
         }
 
     @staticmethod
-    def sales_sunburst(sales: pd.DataFrame, y: str = "MakingValue") -> None:
+    def sales_sunburst(sales: pd.DataFrame, y: str = "Making Value") -> None:
         """
         Generates a sunburst chart of the sales data.
 
@@ -232,9 +232,9 @@ class Plots:
         # ----- Plotting ----- #
         fig = px.sunburst(
             sales,
-            path=["PurityCategory", "ItemCategory"],
+            path=["Purity Category", "Item Category"],
             values=y,
-            color="PurityCategory",
+            color="Purity Category",
             color_discrete_map=Plots._purity_color_map(),
             width=800,
             height=600,
@@ -245,7 +245,7 @@ class Plots:
             texttemplate=(
                 "<b>%{label} (%{percentEntry:.2%})</b><br>"
                 + "%{value:,.2f}"
-                + f" {'AED' if y == 'MakingValue' else 'g'}"
+                + f" {'AED' if y == 'Making Value' else 'g'}"
             ),
             textinfo="text",
             textfont_size=10,
@@ -256,7 +256,7 @@ class Plots:
         return fig
 
     @staticmethod
-    def monthwise_sales(sales: pd.DataFrame, y: str = "MakingValue") -> None:
+    def monthwise_sales(sales: pd.DataFrame, y: str = "Making Value") -> None:
         """
         Generates a month-wise sales chart by purity using Streamlit.
 
@@ -269,8 +269,8 @@ class Plots:
             sales,
             x=sales.Month,
             y=sales[y],
-            color=sales.PurityCategory,
-            custom_data=["PurityCategory"],
+            color=sales["Purity Category"],
+            custom_data=["Purity Category"],
             color_discrete_map=Plots._purity_color_map(),
             # title="Monthly Sales by Purity",
             barmode="stack",
@@ -312,7 +312,7 @@ class Plots:
             hovermode="closest",
             xaxis_title="Month",
             yaxis_title=(
-                f"Making Charges (AED)" if y == "MakingValue" else "Gross Weight (g)"
+                f"Making Charges (AED)" if y == "Making Value" else "Gross Weight (g)"
             ),
             legend_title_text="Purity Category",
             xaxis=dict(tickformat="%b %Y"),
@@ -321,12 +321,12 @@ class Plots:
                     0,
                     (
                         max(base_ymax, sales_max)
-                        if sales_max > base_ythresh and y != "GrossWt"
+                        if sales_max > base_ythresh and y != "Gross Weight"
                         else sales_max
                     ),
                 ],
                 **kwargs,
-                dtick=20000 if y == "MakingValue" else 2000,
+                dtick=20000 if y == "Making Value" else 2000,
             ),
         )
 
@@ -347,23 +347,23 @@ class Plots:
         """
 
         # ----- Plotting ----- #
-        data = df[df.TransactionType == "SALE"].copy()
-        data["Month"] = data.DocDate.dt.to_period("M").astype(str)
-        data["Week"] = data.DocDate.dt.to_period("W")
+        data = df[df["Transaction Type"] == "SALE"].copy()
+        data["Month"] = data.Date.dt.to_period("M").astype(str)
+        data["Week"] = data.Date.dt.to_period("W")
         data = (
-            data[data.MakingValue > 0]
+            data[data["Making Value"] > 0]
             .groupby(["Month", "Week"])
-            .agg({"MakingValue": "sum"})
+            .agg({"Making Value": "sum"})
             .reset_index()
         )
-        data.columns = ["Month", "Week", "MakingValue"]
+        data.columns = ["Month", "Week", "Making Value"]
 
         fig = px.box(
             data,
             x="Month",
-            y="MakingValue",
+            y="Making Value",
             title="Weekly Making Charges by Month",
-            labels={"Month": "Month", "MakingValue": "Making Charges (AED)"},
+            labels={"Month": "Month", "Making Value": "Making Charges (AED)"},
             width=800,
             height=600,
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
@@ -396,9 +396,9 @@ class Plots:
         fig = px.histogram(
             sales,
             x="Day",
-            y="GrossWt",
+            y="Gross Weight",
             nbins=50,
-            # labels={"MakingValue": "Making Value"},
+            # labels={" Making Value ": "Making Value"},
             title="Weekly Distribution of Gross Weight",
         )
 
@@ -406,17 +406,17 @@ class Plots:
         weekly = sales.copy()
 
         weekly = (
-            weekly.resample("W", on="DocDate").agg({"GrossWt": "sum"}).reset_index()
+            weekly.resample("W", on="Date").agg({"Gross Weight": "sum"}).reset_index()
         )
         weekly["RollingAvg"] = (
-            weekly["GrossWt"].rolling(window=4, win_type="triang").mean().bfill()
+            weekly["Gross Weight"].rolling(window=4, win_type="triang").mean().bfill()
         )
 
         # Ignore savgol_filter if it fails
         try:
             fig.add_trace(
                 go.Scatter(
-                    x=weekly["DocDate"],
+                    x=weekly["Date"],
                     y=savgol_filter(weekly["RollingAvg"], 10, 2),
                     mode="lines",
                     name="Weekly Average",
@@ -469,24 +469,24 @@ class Plots:
             sales (pd.DataFrame): DataFrame containing sales data.
         """
 
-        data = sales[(sales.TransactionType == "SALE")]
+        data = sales[(sales["Transaction Type"] == "SALE")]
 
         if item_category:
-            data = data[data.ItemCategory == item_category]
+            data = data[data["Item Category"] == item_category]
         if purity:
-            data = data[data.PurityCategory == purity]
+            data = data[data["Purity Category"] == purity]
 
         # ----- Plotting ----- #
         fig = px.box(
-            data.loc[data.index.repeat(data.QtyInPcs)]
+            data.loc[data.index.repeat(data["Unit Quantity"])]
             .reset_index(drop=True)
-            .groupby(["ItemCategory", "Month", "Week"])
-            .agg({"ItemWeight": "median"})
+            .groupby(["Item Category", "Month", "Week"])
+            .agg({"Item Weight": "median"})
             .reset_index(),
             x="Month",
-            y="ItemWeight",
+            y="Item Weight",
             title=f"Median Weekly Item Weight by Month: {item_category if item_category else 'All Items'}",
-            labels={"ItemCategory": "Item Category", "ItemWeight": "Item Weight (g)"},
+            labels={"Item Category": "Item Category", "Item Weight": "Item Weight (g)"},
             color_discrete_sequence=[Color.OCEAN_BLUE.value],
             # points=False,
         )
@@ -525,16 +525,16 @@ class Plots:
             sales (pd.DataFrame): DataFrame containing sales data.
         """
 
-        data = sales[(sales.TransactionType == "SALE")]
+        data = sales[(sales["Transaction Type"] == "SALE")]
         if item_category:
-            data = data[data.ItemCategory == item_category]
+            data = data[data["Item Category"] == item_category]
         if purity:
-            data = data[data.PurityCategory == purity]
+            data = data[data["Purity Category"] == purity]
         # ----- Plotting ----- #
         fig = px.histogram(
             data,
-            x="ItemWeight",
-            y="MakingValue",
+            x="Item Weight",
+            y="Making Value",
             histfunc="sum",
             nbins=nbins,
             title=f"Weight Distribution: {item_category if item_category else 'All Items'}",
@@ -567,7 +567,7 @@ class Plots:
 
     @staticmethod
     def rolling_purity_performance(sales: pd.DataFrame, item="None"):
-        sales = sales if item == "None" else sales[sales.ItemCategory == item]
+        sales = sales if item == "None" else sales[sales["Item Category"] == item]
 
         def add_line(fig, purity: str, color):
             """Adds a line for a given purity."""
@@ -611,36 +611,36 @@ class Plots:
         df = (
             sales.copy()
             if purity == "None"
-            else sales[sales.PurityCategory == purity].copy()
+            else sales[sales["Purity Category"] == purity].copy()
         )
 
         df = (
-            df.groupby(["ItemCategory", "WeightRange"])
-            .agg({"MakingValue": "sum"})
+            df.groupby(["Item Category", "Weight Range"])
+            .agg({"Making Value": "sum"})
             .reset_index()
         )
 
         # Min-Max Normalized Values for each Item Category
-        df["Value_norm"] = df.groupby("ItemCategory")["MakingValue"].transform(
+        df["Value_norm"] = df.groupby("Item Category")["Making Value"].transform(
             lambda x: (x - x.min()) / (x.max() - x.min())
         )
 
         # Calculate zmax
-        top = df.sort_values("MakingValue", ascending=False)["MakingValue"]
+        top = df.sort_values("Making Value", ascending=False)["Making Value"]
         a, b = top.iloc[0], top.iloc[1] if len(top) > 1 else (top.iloc[0], 0)
         weight = 10
         zmax = (a + (weight * b)) / (weight + 1)
 
         # Variable for normalization
-        value = "Value_norm" if normalize else "MakingValue"
+        value = "Value_norm" if normalize else "Making Value"
         color_label = "Frequency" if normalize else "Making Value"
         zmax = df[value].max() if normalize else zmax
 
         # Plot
         fig = px.imshow(
-            df.pivot(index="ItemCategory", columns="WeightRange", values=value),
+            df.pivot(index="Item Category", columns="Weight Range", values=value),
             labels=dict(x="Item Weight", y="Item Category", color=color_label),
-            # zmax=df.sort_values("MakingValue", ascending=False).iloc[1]["MakingValue"],
+            # zmax=df.sort_values(" Making Value ", ascending=False).iloc[1][" Making Value "],
             zmax=zmax,
             color_continuous_scale=px.colors.sequential.Plasma,
         )
