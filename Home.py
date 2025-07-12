@@ -21,7 +21,7 @@ if "redirected" not in ss:
     ss["redirected"] = False
 
 present_navigation()
-if "cashbook" not in ss or "wingold" not in ss:
+if "cashbook" not in ss or "sales" not in ss:
     ss["redirected"] = False
     # Go to upload page
     st.switch_page("pages/upload.py")

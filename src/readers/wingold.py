@@ -14,6 +14,73 @@ class TransactionType(Enum):
     RETURN = 3
     DIRECT_SALE = 4
 
+    def identify_transaction(doc_number: str):
+        if doc_number.startswith("S"):
+            return TransactionType.SALE.name
+        elif doc_number.startswith("P"):
+            return TransactionType.PURCHASE.name
+        elif doc_number.startswith("R"):
+            return TransactionType.RETURN.name
+        elif doc_number.startswith("D"):
+            return TransactionType.DIRECT_SALE.name
+        else:
+            return "Unknown"
+
+
+class Purity:
+    ranges = {
+        "22K": (0.9165, 0.926),
+        "21K": (0.875, 0.880),
+        "18K": (0.75, 0.76),
+        "9K": (0.375, 0.4),
+    }
+
+    def __init__(self, purity_category: str, purity: float, mpurity: float):
+        """
+        Creates a purity object.
+
+        Args:
+            purity_category (str): The purity category (e.g. `18K`)
+            purity (float): The actual purity.
+            mpurity (float): The manufacturing purity equivalent.
+        """
+        self._purity_category = purity_category
+        self._purity = purity
+        self._manufacturing_purity = mpurity
+
+        @property
+        def purity_category(self) -> str:
+            return self._purity_category
+
+        @property
+        def purity(self) -> float:
+            return self._purity
+
+        @property
+        def manufacturing_purity(self) -> float:
+            return self._manufacturing_purity
+
+    @staticmethod
+    def get_purity(purity: float):
+        for key, spread in Purity.ranges.items():
+            if purity >= spread[0] and purity <= spread[1]:
+                return Purity(purity_category=key, purity=purity, mpurity=spread[0])
+        return ValueError(f"No compatible purity found for {purity}.")
+
+    @staticmethod
+    def get_purity_category(purity: float):
+        for key, spread in Purity.ranges.items():
+            if purity >= spread[0] and purity <= spread[1]:
+                return key
+        return ValueError(f"No compatible purity found for {purity}.")
+
+    @staticmethod
+    def get_manufacturing_purity(purity: float):
+        for key, spread in Purity.ranges.items():
+            if purity >= spread[0] and purity <= spread[1]:
+                return spread[0]
+        return ValueError(f"No compatible purity found for {purity}.")
+
 
 class WingoldReader:
     def __init__(self, filepath: str):
@@ -61,15 +128,15 @@ class WingoldReader:
                 "PureWt",
                 "MakingRt",
                 "MakingValue",
-                "NetAmount",
-                "PurityDiff",
-                "TaxAmount",
+                # "NetAmount",
+                # "PurityDiff",
+                # "TaxAmount",
             ]
         ]
 
         # Set transaction type
         self._transactions["TransactionType"] = self._transactions["DocNumber"].apply(
-            self.__get_transaction_type
+            TransactionType.identify_transaction
         )
 
         # Datetime conversions
@@ -115,10 +182,10 @@ class WingoldReader:
 
         # Purity
         self._transactions["PurityCategory"] = self._transactions["Purity"].apply(
-            self.__get_purity_category
+            Purity.get_purity_category
         )
         self._transactions["ManufacturingPurity"] = self._transactions["Purity"].apply(
-            self.__get_purity_manufacturing
+            Purity.get_manufacturing_purity
         )
 
         self._transactions["ItemWeight"] = (
@@ -182,34 +249,6 @@ class WingoldReader:
         data = subprocess.check_output(["mdb-export", filepath, table_name])
         return pd.read_csv(io.BytesIO(data))
 
-    def __get_purity_category(self, purity) -> str:
-        """
-        Tag purity levels based on the purity.
-        """
-        purity = float(purity)
-        if purity >= 0.92 and purity <= 0.926:
-            return "22K"
-        elif purity >= 0.875 and purity <= 0.880:
-            return "21K"
-        elif purity >= 0.750 and purity <= 0.760:
-            return "18K"
-        elif purity >= 0.375 and purity <= 0.40:  # TODO: Verify upper bound
-            return "9K"
-
-    def __get_purity_manufacturing(self, purity) -> str:
-        """
-        Tag purity levels based on the purity.
-        """
-        purity = float(purity)
-        if purity >= 0.9165 and purity <= 0.926:
-            return 0.9165
-        elif purity >= 0.875 and purity <= 0.880:
-            return 0.875
-        elif purity >= 0.750 and purity <= 0.760:
-            return 0.750
-        elif purity >= 0.375 and purity <= 0.40:  # TODO: Verify upper bound
-            return 0.375
-
     def __fix_capitalization(self, name: str):
         """
         Fixes the capitalization of a name by capitalizing the first letter of each word.
@@ -219,24 +258,3 @@ class WingoldReader:
         name = " ".join(word.capitalize() for word in name.split())
         name = re.sub(r"[Ll]\.?[Ll]\.?[Cc]", "LLC", name)
         return name
-
-    def __get_transaction_type(self, doc_number: str):
-        """
-        Determines the transaction category based on the document number.
-
-        Args:
-            doc_number (str): The document number to classify.
-
-        Returns:
-            str: The type of transaction.
-        """
-        if doc_number.startswith("S"):
-            return TransactionType.SALE.name
-        elif doc_number.startswith("P"):
-            return TransactionType.PURCHASE.name
-        elif doc_number.startswith("R"):
-            return TransactionType.RETURN.name
-        elif doc_number.startswith("D"):
-            return TransactionType.DIRECT_SALE.name
-        else:
-            return "Unknown"

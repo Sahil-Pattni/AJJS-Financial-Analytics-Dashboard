@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit import session_state as ss
 from src.readers.cashbook import CashbookReader
 from src.readers.wingold import WingoldReader
+from src.models.sales import Sales
 
 
 def show_uploaders():
@@ -43,7 +44,10 @@ def main():
             only_this_year=True,
         )
 
-        ss["wingold"] = WingoldReader("data/uploaded/wingold.mdb")
+        wingold = WingoldReader("data/uploaded/wingold.mdb")
+        sales = Sales()
+        sales.add_data(wingold.sales)
+        ss["sales"] = sales
         st.switch_page("pages/sales_overview.py")
 
 

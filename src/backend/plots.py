@@ -28,6 +28,7 @@ class Color(Enum):
     K18 = "#003049"
     K22 = "#9f111a"
     K21 = "#ffc300"
+    K9 = "#02b013"
 
 
 class Plots:
@@ -41,48 +42,7 @@ class Plots:
             monthly_data (pd.DataFrame): DataFrame containing monthly income and expenses.
         """
 
-        # ----- Plotting ----- #
-        fig = go.Figure()
-
-        # Income
-        fig.add_trace(
-            go.Bar(
-                x=monthly_data.index,
-                y=monthly_data["Total Income"],
-                name="Making Charges",
-                marker_color=Color.GREEN1.value,
-                text=monthly_data["Total Income"].apply(lambda x: f"{x:,.2f} AED"),
-                textposition="outside",
-                hovertemplate=("Month: %{x}<br>" + "Making Charges: %{y:,.2f} AED<br>"),
-            )
-        )
-
-        if convert_gold:
-            fig.add_trace(
-                go.Bar(
-                    x=monthly_data.index,
-                    y=monthly_data["GoldGains"],
-                    name="Gold Gains",
-                    marker_color=Color.GREEN3.value,
-                    text=monthly_data["GoldGains"].apply(lambda x: f"{x:,.2f} AED"),
-                    textposition="outside",
-                    hovertemplate=("Month: %{x}<br>" + "Gold Gains: %{y:,.2f} AED<br>"),
-                )
-            )
-
-        # Expenses
-        fig.add_trace(
-            go.Bar(
-                x=monthly_data.index,
-                y=monthly_data["Total Cost"],
-                name="Total Cost",
-                marker_color=Color.DARK_RED.value,
-                text=monthly_data["Total Cost"].apply(lambda x: f"{x:,.2f} AED"),
-                textposition="outside",
-                hovertemplate=("Month: %{x}<br>" + "Total Expenses: %{y:,.2f} AED<br>"),
-            )
-        )
-
+        # ----- DERIVED STATS & DATA ----- #
         # Add line for average expenses
         profit = (
             monthly_data["Net Profit"]
@@ -93,38 +53,80 @@ class Plots:
             )
         )
         avg = profit.mean()
-        fig.add_hline(
-            y=avg,
-            line_dash="dash",
-            line_color=Color.BLACK.value,
-            annotation_text=f"Average Net Profit: {avg:,.2f} AED",
-            annotation_position="top left",
-            annotation_font_color=Color.BLACK.value,
-            opacity=0.2,
+
+        # ----- Plotting ----- #
+        fig = go.Figure()
+
+        # Income
+        fig.add_trace(
+            go.Bar(
+                y=monthly_data["Total Income"],
+                name="Making Charges",
+                marker_color=Color.GREEN1.value,
+                text=monthly_data["Total Income"].apply(lambda x: f"{x:,.2f} AED"),
+                hovertemplate=("Month: %{x}<br>" + "Making Charges: %{y:,.2f} AED<br>"),
+            )
         )
 
-        # Fixed costs line
-        fixed_cost = -monthly_data["Fixed Costs"].mean()
-        fig.add_hline(
-            y=fixed_cost,
-            line_dash="dash",
-            line_color=Color.BLACK.value,
-            annotation_text=f"Monthly Fixed Cost: {fixed_cost:,.2f} AED",
-            annotation_position="top left",
-            annotation_font_color=Color.BLACK.value,
-            opacity=0.2,
+        # Add gold gains as AED
+        if convert_gold:
+            fig.add_trace(
+                go.Bar(
+                    y=monthly_data["GoldGains"],
+                    name="Gold Gains",
+                    marker_color=Color.GREEN3.value,
+                    text=monthly_data["GoldGains"].apply(lambda x: f"{x:,.2f} AED"),
+                    hovertemplate=("Month: %{x}<br>" + "Gold Gains: %{y:,.2f} AED<br>"),
+                )
+            )
+
+        # Expenses
+        fig.add_trace(
+            go.Bar(
+                y=monthly_data["Total Cost"],
+                name="Total Cost",
+                marker_color=Color.DARK_RED.value,
+                text=monthly_data["Total Cost"].apply(lambda x: f"{x:,.2f} AED"),
+                hovertemplate=("Month: %{x}<br>" + "Total Expenses: %{y:,.2f} AED<br>"),
+            )
         )
+
+        # Common trace args
+        fig.update_traces(textposition="outside")
 
         # Add line for net profit
         fig.add_trace(
             go.Scatter(
-                x=monthly_data.index,
                 y=profit,
                 mode="lines+markers",
                 name="Net Profit",
                 line=dict(color=Color.DARK_GREY.value, width=2),
                 hovertemplate=("Month: %{x}<br>" + "Net Profit: %{y:,.2f} AED<br>"),
             )
+        )
+
+        # Common trace args
+        fig.update_traces(x=monthly_data.index)
+
+        # Common line args
+        kwargs = {
+            "line_dash": "dash",
+            "line_color": Color.BLACK.value,
+            "annotation_position": "top left",
+            "annotation_font_color": Color.BLACK.value,
+            "opacity": 0.2,
+        }
+
+        fig.add_hline(
+            y=avg, annotation_text=f"Average Net Profit: {avg:,.2f} AED", **kwargs
+        )
+
+        # Fixed costs line
+        fixed_cost = -monthly_data["Fixed Costs"].mean()
+        fig.add_hline(
+            y=fixed_cost,
+            annotation_text=f"Monthly Fixed Cost: {fixed_cost:,.2f} AED",
+            **kwargs,
         )
 
         ymax = max(
@@ -210,6 +212,15 @@ class Plots:
         return fig
 
     @staticmethod
+    def _purity_color_map():
+        return {
+            "18K": Color.K18.value,
+            "21K": Color.K21.value,
+            "22K": Color.K22.value,
+            "9K": Color.K9.value,
+        }
+
+    @staticmethod
     def sales_sunburst(sales: pd.DataFrame, y: str = "MakingValue") -> None:
         """
         Generates a sunburst chart of the sales data.
@@ -219,18 +230,12 @@ class Plots:
         """
 
         # ----- Plotting ----- #
-        pastel = px.colors.qualitative.Pastel
         fig = px.sunburst(
             sales,
             path=["PurityCategory", "ItemCategory"],
             values=y,
             color="PurityCategory",
-            color_discrete_map={
-                "18K": Color.K18.value,
-                "21K": Color.K21.value,
-                "22K": Color.K22.value,
-                "9K": pastel[4],
-            },
+            color_discrete_map=Plots._purity_color_map(),
             width=800,
             height=600,
         )
@@ -260,30 +265,27 @@ class Plots:
         """
 
         # ----- Plotting ----- #
-        pastel = px.colors.qualitative.Pastel
         fig = px.bar(
             sales,
             x=sales.Month,
             y=sales[y],
             color=sales.PurityCategory,
             custom_data=["PurityCategory"],
-            color_discrete_map={
-                "18K": Color.K18.value,
-                "21K": Color.K21.value,
-                "22K": Color.K22.value,
-                "9K": pastel[4],
-            },
+            color_discrete_map=Plots._purity_color_map(),
             # title="Monthly Sales by Purity",
             barmode="stack",
             height=600,
             width=800,
         )
+
+        # Average sales
         avg = sales.groupby(sales.Month).agg({y: "sum"})
         # Exclude latest month if it is incomplete
         this_month = datetime.now().strftime("%Y-%m")
         if sales.Month.max() == this_month:
             avg = avg[avg.index != this_month]
         avg = avg[y].mean()
+
         fig.add_hline(
             y=avg,
             line_dash="dash",
@@ -313,10 +315,7 @@ class Plots:
                 f"Making Charges (AED)" if y == "MakingValue" else "Gross Weight (g)"
             ),
             legend_title_text="Purity Category",
-            xaxis=dict(
-                tickformat="%b %Y",
-                # **kwargs,
-            ),
+            xaxis=dict(tickformat="%b %Y"),
             yaxis=dict(
                 range=[
                     0,
@@ -410,10 +409,8 @@ class Plots:
             weekly.resample("W", on="DocDate").agg({"GrossWt": "sum"}).reset_index()
         )
         weekly["RollingAvg"] = (
-            weekly["GrossWt"].rolling(window=4, win_type="triang").mean()
+            weekly["GrossWt"].rolling(window=4, win_type="triang").mean().bfill()
         )
-        # Backfill
-        weekly["RollingAvg"] = weekly["RollingAvg"].bfill()
 
         # Ignore savgol_filter if it fails
         try:
@@ -571,41 +568,26 @@ class Plots:
     @staticmethod
     def rolling_purity_performance(sales: pd.DataFrame, item="None"):
         sales = sales if item == "None" else sales[sales.ItemCategory == item]
-        k18 = Analytics.segment_performance(sales, "18K")
-        k22 = Analytics.segment_performance(sales, "22K")
-        k21 = Analytics.segment_performance(sales, "21K")
+
+        def add_line(fig, purity: str, color):
+            """Adds a line for a given purity."""
+            df = Analytics.segment_performance(sales, purity)
+            fig.add_trace(
+                go.Scatter(
+                    x=df["Day"],
+                    y=df["RollingAvg"],
+                    name=purity,
+                    line=dict(color=color, width=2),
+                )
+            )
+
         # Plot for all three as lines
         fig = go.Figure()
-        fig.add_trace(
-            go.Scatter(
-                x=k18["Day"],
-                y=k18["RollingAvg"],
-                mode="lines",
-                name="18K",
-                line=dict(color=Color.K18.value, width=2),
-            )
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=k22["Day"],
-                y=k22["RollingAvg"],
-                name="22K",
-                line=dict(color=Color.K22.value, width=2),
-            )
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=k21["Day"],
-                y=k21["RollingAvg"],
-                name="21K",
-                line=dict(color=Color.K21.value, width=2),
-            )
-        )
+        add_line(fig, "18K", Color.K18.value)
+        add_line(fig, "22K", Color.K22.value)
+        add_line(fig, "21K", Color.K21.value)
 
-        fig.update_traces(
-            mode="lines",
-            marker=dict(symbol="circle", size=8),
-        )
+        fig.update_traces(mode="lines", marker=dict(symbol="circle", size=8))
         fig.update_layout(
             xaxis_title="Day",
             yaxis_title="Making Value",
@@ -625,7 +607,7 @@ class Plots:
             sales (pd.DataFrame): DataFrame containing sales data.
         """
 
-        # ----- Set weight ranges ----- #
+        # ----- Isolate target data ----- #
         df = (
             sales.copy()
             if purity == "None"
@@ -637,6 +619,8 @@ class Plots:
             .agg({"MakingValue": "sum"})
             .reset_index()
         )
+
+        # Min-Max Normalized Values for each Item Category
         df["Value_norm"] = df.groupby("ItemCategory")["MakingValue"].transform(
             lambda x: (x - x.min()) / (x.max() - x.min())
         )

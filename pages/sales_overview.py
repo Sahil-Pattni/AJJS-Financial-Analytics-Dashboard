@@ -3,7 +3,7 @@ from streamlit import session_state as ss
 import pandas as pd
 from src.backend.modules import Components
 
-df = ss["wingold"].sales.copy()
+df = ss["sales"].data.copy()
 
 min_date = df["DocDate"].min().date()
 max_date = df["DocDate"].max().date()

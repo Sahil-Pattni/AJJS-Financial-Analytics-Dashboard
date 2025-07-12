@@ -21,10 +21,7 @@ ignore_salaries = st.sidebar.toggle("Exclude Salaries", value=True)
 # ----- DATA ----- #
 fig = Plots.income_expenses_chart(
     Analytics.income_expenses_data(
-        ss["wingold"].sales,
-        ss["cashbook"].cashbook,
-        ss["cashbook"].fixed_costs,
-        **kwargs
+        ss["sales"].data, ss["cashbook"].cashbook, ss["cashbook"].fixed_costs, **kwargs
     ),
     convert_gold=toggle,
 )

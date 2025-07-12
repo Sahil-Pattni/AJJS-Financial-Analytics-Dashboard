@@ -3,7 +3,7 @@ from streamlit import session_state as ss
 import pandas as pd
 from src.backend.modules import Components
 
-df = ss["wingold"].sales.copy()
+df = ss["sales"].data.copy()
 clients = df["TAName"].sort_values().unique().tolist()
 ss["CLIENT"] = st.sidebar.selectbox(
     "Select Client", clients, index=clients.index("Meena Jewellers LLC")

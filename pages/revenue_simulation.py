@@ -12,7 +12,7 @@ COLOR_A = "#457b9d"  # 18K
 COLOR_B = "#a8dadc"  # 22K
 COLOR_C = "#dedb18"  # 21K
 
-sales = ss["wingold"].sales
+sales = ss["sales"].data
 cb = ss["cashbook"].cashbook
 
 
@@ -123,7 +123,6 @@ def plot_breakeven():
         go.Scatter(
             x=vol_before,
             y=rev_before,
-            mode="lines",
             name="Gross Revenue",
             line=dict(color=COLOR_A, width=2, dash="dot"),
         )
@@ -134,7 +133,6 @@ def plot_breakeven():
         go.Scatter(
             x=vol_before,
             y=costs_before,
-            mode="lines",
             name="Total Costs (Loss)",
             fill="tonexty",
             line=dict(color="#F3722C", width=2, dash="solid"),
@@ -146,7 +144,6 @@ def plot_breakeven():
         go.Scatter(
             x=vol_after,
             y=rev_after,
-            mode="lines",
             name="Gross Revenue",
             line=dict(color=COLOR_B, width=2, dash="dot"),
         )
@@ -157,13 +154,15 @@ def plot_breakeven():
         go.Scatter(
             x=vol_after,
             y=costs_after,
-            mode="lines",
             name="Total Costs (Profit)",
             fill="tonexty",
             fillcolor="#7CF32C",
             line=dict(color="#F3722C", width=2, dash="solid"),
         )
     )
+
+    # Common trace args
+    fig.update_traces(mode="lines")
 
     # Add breakeven line
     fig.add_hline(
