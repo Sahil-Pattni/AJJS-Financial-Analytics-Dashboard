@@ -27,61 +27,6 @@ class TransactionType(Enum):
             return "Unknown"
 
 
-class Purity:
-    ranges = {
-        "22K": (0.9165, 0.926),
-        "21K": (0.875, 0.880),
-        "18K": (0.75, 0.76),
-        "9K": (0.375, 0.4),
-    }
-
-    def __init__(self, purity_category: str, purity: float, mpurity: float):
-        """
-        Creates a purity object.
-
-        Args:
-            purity_category (str): The purity category (e.g. `18K`)
-            purity (float): The actual purity.
-            mpurity (float): The manufacturing purity equivalent.
-        """
-        self._purity_category = purity_category
-        self._purity = purity
-        self._manufacturing_purity = mpurity
-
-        @property
-        def purity_category(self) -> str:
-            return self._purity_category
-
-        @property
-        def purity(self) -> float:
-            return self._purity
-
-        @property
-        def manufacturing_purity(self) -> float:
-            return self._manufacturing_purity
-
-    @staticmethod
-    def get_purity(purity: float):
-        for key, spread in Purity.ranges.items():
-            if purity >= spread[0] and purity <= spread[1]:
-                return Purity(purity_category=key, purity=purity, mpurity=spread[0])
-        return ValueError(f"No compatible purity found for {purity}.")
-
-    @staticmethod
-    def get_purity_category(purity: float):
-        for key, spread in Purity.ranges.items():
-            if purity >= spread[0] and purity <= spread[1]:
-                return key
-        return ValueError(f"No compatible purity found for {purity}.")
-
-    @staticmethod
-    def get_manufacturing_purity(purity: float):
-        for key, spread in Purity.ranges.items():
-            if purity >= spread[0] and purity <= spread[1]:
-                return spread[0]
-        return ValueError(f"No compatible purity found for {purity}.")
-
-
 class WingoldReader:
     def __init__(self, filepath: str):
         """
@@ -128,9 +73,6 @@ class WingoldReader:
                 "PureWt",
                 "MakingRt",
                 "MakingValue",
-                # "NetAmount",
-                # "PurityDiff",
-                # "TaxAmount",
             ]
         ]
 
@@ -144,15 +86,6 @@ class WingoldReader:
             "0001", "1971"
         )
         self._transactions["DocDate"] = pd.to_datetime(self._transactions["DocDate"])
-        self._transactions["Month"] = (
-            self._transactions["DocDate"].dt.to_period("M").astype(str)
-        )
-        self._transactions["Week"] = (
-            self._transactions["DocDate"].dt.to_period("W").astype(str)
-        )
-        self._transactions["Day"] = (
-            self._transactions["DocDate"].dt.to_period("D").astype(str)
-        )
         self._transactions.sort_values(by="DocDate", inplace=True)
 
         # Add name from accounts
@@ -164,48 +97,6 @@ class WingoldReader:
         )
         accounts_map = self._accounts.set_index("TaCode")["TAName"].to_dict()
         self._transactions["TAName"] = self._transactions["TaCode"].map(accounts_map)
-
-        # Codes and Categories
-        self._transactions["ItemCode"] = self._transactions["ItemCode"].str.upper()
-        self._transactions["ItemCategory"] = self._transactions["ItemCode"].str.extract(
-            r"\d{2}(\w+)"
-        )
-        self._transactions["ItemCategory"] = self._transactions["ItemCategory"].map(
-            {
-                "BRA": "Bracelets",
-                "CHA": "Chains",
-                "BAN": "Bangles",
-                "RIN": "Rings",
-                "PEN": "Pendants",
-            }
-        )
-
-        # Purity
-        self._transactions["PurityCategory"] = self._transactions["Purity"].apply(
-            Purity.get_purity_category
-        )
-        self._transactions["ManufacturingPurity"] = self._transactions["Purity"].apply(
-            Purity.get_manufacturing_purity
-        )
-
-        self._transactions["ItemWeight"] = (
-            self._transactions["GrossWt"] / self._transactions["QtyInPcs"]
-        )
-
-        # Weight Ranges
-        bins = [0, 20, 30, 40, 50, 100, 150, float("inf")]
-        labels = [
-            "<20g",
-            "20-30g",
-            "30-40g",
-            "40-50g",
-            "50-100g",
-            "100-150g",
-            ">150g",
-        ]
-        self._transactions["WeightRange"] = pd.cut(
-            self._transactions["ItemWeight"], bins=bins, labels=labels, right=False
-        )
 
     def __extract_sales(self) -> pd.DataFrame:
         """
@@ -230,7 +121,6 @@ class WingoldReader:
         ].copy()
         # Merge with negative sales returns values
         sales = pd.concat([sales, sales_returns], ignore_index=True)
-        sales["GoldGains"] = (sales.Purity - sales.ManufacturingPurity) * sales.GrossWt
 
         return sales
 

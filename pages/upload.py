@@ -39,6 +39,7 @@ def main():
                 f.write(wingold.getbuffer())
 
         with st.spinner("Processing data..."):
+            # Set cashbook data
             ss["cashbook"] = CashbookReader(
                 "data/uploaded/cashbook.xlsx",
                 "data/static/expense_categories.json",
@@ -47,9 +48,13 @@ def main():
                 only_this_year=True,
             )
 
+            # Extract all sales data
             wingold = WingoldReader("data/uploaded/wingold.mdb")
             sales = Sales()
+            # Add sales data from all sources
             sales.add_data(wingold.sales)
+
+            # Set sales
             ss["sales"] = sales
             st.switch_page("pages/sales_overview.py")
 
