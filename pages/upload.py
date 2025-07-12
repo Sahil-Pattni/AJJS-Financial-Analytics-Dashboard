@@ -25,30 +25,33 @@ def show_uploaders():
 
 def main():
     cashbook, wingold = show_uploaders()
+    button = st.button("Process Data")
     if not cashbook or not wingold:
         st.warning("Please upload your cashbook and Wingold files.")
         st.stop()
+    elif not button:
+        st.stop()
+    elif button:
+        with st.spinner("Saving files..."):
+            with open("data/uploaded/cashbook.xlsx", "wb") as f:
+                f.write(cashbook.getbuffer())
+            with open("data/uploaded/wingold.mdb", "wb") as f:
+                f.write(wingold.getbuffer())
 
-    with st.spinner("Saving files..."):
-        with open("data/uploaded/cashbook.xlsx", "wb") as f:
-            f.write(cashbook.getbuffer())
-        with open("data/uploaded/wingold.mdb", "wb") as f:
-            f.write(wingold.getbuffer())
+        with st.spinner("Processing data..."):
+            ss["cashbook"] = CashbookReader(
+                "data/uploaded/cashbook.xlsx",
+                "data/static/expense_categories.json",
+                "data/static/income_categories.json",
+                "data/static/fixed_costs.json",
+                only_this_year=True,
+            )
 
-    with st.spinner("Processing data..."):
-        ss["cashbook"] = CashbookReader(
-            "data/uploaded/cashbook.xlsx",
-            "data/static/expense_categories.json",
-            "data/static/income_categories.json",
-            "data/static/fixed_costs.json",
-            only_this_year=True,
-        )
-
-        wingold = WingoldReader("data/uploaded/wingold.mdb")
-        sales = Sales()
-        sales.add_data(wingold.sales)
-        ss["sales"] = sales
-        st.switch_page("pages/sales_overview.py")
+            wingold = WingoldReader("data/uploaded/wingold.mdb")
+            sales = Sales()
+            sales.add_data(wingold.sales)
+            ss["sales"] = sales
+            st.switch_page("pages/sales_overview.py")
 
 
 if __name__ == "__main__":

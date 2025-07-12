@@ -31,4 +31,4 @@ else:
         # Show financial analysis page
         logging.info("Switching to financial analysis page...")
         ss["redirected"] = True
-        st.switch_page("pages/financial_analysis.py")
+        st.switch_page("pages/sales_overview.py")
