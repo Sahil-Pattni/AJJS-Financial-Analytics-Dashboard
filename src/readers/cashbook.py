@@ -191,7 +191,7 @@ class CashbookReader:
         decrypted_workbook = io.BytesIO()
         with open(filepath, "rb") as file:
             office_file = msoffcrypto.OfficeFile(file)
-            office_file.load_key(password=os.getenv("ExcelPassword"))
+            office_file.load_key(password=os.getenv("CashbookPassword"))
             office_file.decrypt(decrypted_workbook)
         return decrypted_workbook
 

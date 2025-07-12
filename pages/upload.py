@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit import session_state as ss
 from src.readers.cashbook import CashbookReader
 from src.readers.wingold import WingoldReader
+from src.readers.qtr import QTRReader
 from src.models.sales import Sales
 
 
@@ -20,11 +21,18 @@ def show_uploaders():
         help="Upload your Wingold file here. It should be a Microsoft Access Database file.",
     )
 
-    return cashbook_uploader, wingold_uploader
+    qtr = st.file_uploader(
+        "Upload your QTR file",
+        type=["xls", "xlsx"],
+        key="qtr_uploader",
+        help="Upload your QTR file here. It should be an Excel file with the necessary sheets.",
+    )
+
+    return cashbook_uploader, wingold_uploader, qtr
 
 
 def main():
-    cashbook, wingold = show_uploaders()
+    cashbook, wingold, qtr = show_uploaders()
     button = st.button("Process Data")
     if not cashbook or not wingold:
         st.warning("Please upload your cashbook and Wingold files.")
@@ -50,10 +58,11 @@ def main():
 
             # Extract all sales data
             wingold = WingoldReader("data/uploaded/wingold.mdb")
-            sales = Sales()
+            qtr = QTRReader("data/uploaded/qtr.xls")
 
+            sales = Sales()
             # Add sales data from WinGold
-            mapping = {
+            wingold_mapping = {
                 "DocNumber": "Invoice Number",
                 "DocDate": "Date",
                 "TAName": "Customer",
@@ -65,7 +74,18 @@ def main():
                 "MakingRt": "Making Rate",
                 "MakingValue": "Making Value",
             }
-            sales.add_data(wingold.sales, mapping=mapping)
+            sales.add_data(wingold.sales, mapping=wingold_mapping)
+
+            # Add sales data from QTR
+            qtr_mapping = {
+                "Voucher": "Invoice Number",
+                "Date": "Date",
+                "Account": "Customer",
+                "Weight": "Gross Weight",
+                "Pure": "Pure Weight",
+                "M-Charge": "Making Value",
+            }
+            sales.add_data(qtr.data, mapping=qtr_mapping)
 
             # Set sales
             ss["sales"] = sales

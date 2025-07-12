@@ -131,43 +131,51 @@ class Components:
             with b:
                 Components.__monthly_metric(df, "Making Value", "AED")
             with c:
-                driver = (
-                    df.groupby("Item Category")
-                    .agg({"Gross Weight": "sum", "Making Value": "sum"})
-                    .sort_values(by="Making Value", ascending=False)
-                    .reset_index()
-                ).iloc[0]
-                st.metric(
-                    "Top Driver",
-                    f"{driver['Item Category']}",
-                    delta=f"{driver['Making Value']:,.2f} AED --- {driver['Gross Weight']:,.2f} g",
-                    border=True,
-                )
+                try:
+                    driver = (
+                        df.groupby("Item Category")
+                        .agg({"Gross Weight": "sum", "Making Value": "sum"})
+                        .sort_values(by="Making Value", ascending=False)
+                        .reset_index()
+                    ).iloc[0]
+                    st.metric(
+                        "Top Driver",
+                        f"{driver['Item Category']}",
+                        delta=f"{driver['Making Value']:,.2f} AED --- {driver['Gross Weight']:,.2f} g",
+                        border=True,
+                    )
+                except:
+                    pass
 
         # Section 2.2: Item Making Charges Heatmap and Rolling Purity Performance
         a, b = st.columns(2)
         with a:
             with st.container(border=True):
                 st.header("Weight Range Profitability")
-                x, y = st.columns([2, 1])
-                with x:
-                    st.selectbox(
-                        "Select Purity",
-                        ["None"] + df["Purity Category"].unique().tolist(),
-                        index=0,
-                        key="purity_heatmap",
+                try:
+                    x, y = st.columns([2, 1])
+                    with x:
+                        st.selectbox(
+                            "Select Purity",
+                            ["None"] + df["Purity Category"].unique().tolist(),
+                            index=0,
+                            key="purity_heatmap",
+                        )
+                    with y:
+                        st.toggle(
+                            "Normalize Heatmap",
+                            value=False,
+                            key="normalize_heatmap",
+                            help="Normalize to show frequency by item category",
+                        )
+
+                    fig = Plots.item_mc_heatmap(
+                        df, purity=ss.purity_heatmap, normalize=ss.normalize_heatmap
                     )
-                with y:
-                    st.toggle(
-                        "Normalize Heatmap",
-                        value=False,
-                        key="normalize_heatmap",
-                        help="Normalize to show frequency by item category",
-                    )
-                fig = Plots.item_mc_heatmap(
-                    df, purity=ss.purity_heatmap, normalize=ss.normalize_heatmap
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True)
+                except:
+                    pass
+
         with b:
             with st.container(border=True):
                 st.header("3-Week Rolling Average: Revenue")
@@ -193,11 +201,14 @@ class Components:
                 )
                 st.plotly_chart(fig2, use_container_width=True, key="mg")
             with k:
-                fig3 = Plots.sales_sunburst(
-                    Analytics.sales_item_sunburst_data(df, on="Gross Weight"),
-                    y="Gross Weight",
-                )
-                st.plotly_chart(fig3, use_container_width=True, key="sg")
+                try:
+                    fig3 = Plots.sales_sunburst(
+                        Analytics.sales_item_sunburst_data(df, on="Gross Weight"),
+                        y="Gross Weight",
+                    )
+                    st.plotly_chart(fig3, use_container_width=True, key="sg")
+                except:
+                    pass
 
             # Section 1.2: Weekly Volume
             q, k = st.columns([1, 1])
@@ -215,8 +226,11 @@ class Components:
                 fig = Plots.monthwise_sales(Analytics.monthly_sales_data(df))
                 st.plotly_chart(fig, use_container_width=True)
             with k:
-                fig = Plots.sales_sunburst(Analytics.sales_item_sunburst_data(df))
-                st.plotly_chart(fig, use_container_width=True)
+                try:
+                    fig = Plots.sales_sunburst(Analytics.sales_item_sunburst_data(df))
+                    st.plotly_chart(fig, use_container_width=True)
+                except:
+                    pass
 
             # Section 2.3: Making Rate Breakdown
             x, y = st.columns(2)

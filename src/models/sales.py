@@ -39,10 +39,10 @@ import re
 
 class Purity:
     ranges = {
-        "22K": (0.9165, 0.926),
+        "22K": (0.916, 0.926),
         "21K": (0.875, 0.880),
         "18K": (0.75, 0.76),
-        "9K": (0.375, 0.4),
+        "9K": (0.375, 0.41),
     }
 
     @staticmethod
@@ -50,14 +50,14 @@ class Purity:
         for key, spread in Purity.ranges.items():
             if purity >= spread[0] and purity <= spread[1]:
                 return key
-        return ValueError(f"No compatible purity found for {purity}.")
+        raise ValueError(f"No compatible purity found for {purity}.")
 
     @staticmethod
     def get_manufacturing_purity(purity: float):
         for key, spread in Purity.ranges.items():
             if purity >= spread[0] and purity <= spread[1]:
                 return spread[0]
-        return ValueError(f"No compatible purity found for {purity}.")
+        raise ValueError(f"No compatible purity found for {purity}.")
 
 
 class Sales:
@@ -130,6 +130,9 @@ class Sales:
                 "PEN": "Pendants",
             }
         )
+
+        # Edge case: Drop 0.995
+        df = df[df["Purity"] != 0.995].copy()
 
         # Purity
         df["Purity Category"] = df["Purity"].apply(Purity.get_purity_category)
