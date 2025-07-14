@@ -40,16 +40,6 @@ class Analytics:
         monthly_making["Gold Gains"] = monthly_making["Gold Gains"] * gold_rate
         monthly_making["Month"] = monthly_making["Month"].dt.to_timestamp()
 
-        # QTR sales data
-        monthly_qtr_making = (
-            cashbook[cashbook["Sub-Category"] == "QTR Making Charges"]
-            .groupby(cashbook.Date.dt.to_period("M"))["Credit"]
-            .sum()
-            .reset_index()
-        )
-        monthly_qtr_making.columns = ["Month", "QTR Making Charges"]
-        monthly_qtr_making["Month"] = monthly_qtr_making["Month"].dt.to_timestamp()
-
         # Expenses
         # We exclude employees and rent from expenses as they're accounted
         # for in fixed costs.
@@ -79,17 +69,12 @@ class Analytics:
 
         # ----- Merge the data ----- #
         monthly_data = pd.merge(
-            monthly_making, monthly_qtr_making, on="Month", how="outer"
+            monthly_making, monthly_expenses, on="Month", how="outer"
         )
-        monthly_data = pd.merge(monthly_data, monthly_expenses, on="Month", how="outer")
+        monthly_data.rename(columns={"Making Charges": "Total Income"}, inplace=True)
 
         monthly_data["Fixed Costs"] = fc + cbfixed
         monthly_data.fillna(0, inplace=True)
-
-        # Add derived columns
-        monthly_data["Total Income"] = (
-            monthly_data["Making Charges"] + monthly_data["QTR Making Charges"]
-        )
 
         # Convert to negative for expenses
         monthly_data["Total Cost"] = -1 * (
