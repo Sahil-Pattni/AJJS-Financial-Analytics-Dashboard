@@ -98,6 +98,9 @@ class WingoldReader:
         accounts_map = self._accounts.set_index("TaCode")["TAName"].to_dict()
         self._transactions["TAName"] = self._transactions["TaCode"].map(accounts_map)
 
+        # Mark as non-QTR
+        self._transactions["QTR"] = False
+
     def __extract_sales(self) -> pd.DataFrame:
         """
         Extracts sales data from the transactions DataFrame, including sales returns.

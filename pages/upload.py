@@ -58,7 +58,6 @@ def main():
 
             # Extract all sales data
             wingold = WingoldReader("data/uploaded/wingold.mdb")
-            qtr = QTRReader("data/uploaded/qtr.xls")
 
             sales = Sales()
             # Add sales data from WinGold
@@ -77,7 +76,9 @@ def main():
             sales.add_data(wingold.sales, mapping=wingold_mapping)
 
             # Add sales data from QTR
-            sales.add_data(qtr.data)
+            if qtr:
+                qtr = QTRReader("data/uploaded/qtr.xls")
+                sales.add_data(qtr.data)
 
             # Set sales
             ss["sales"] = sales

@@ -120,6 +120,9 @@ class QTRReader:
             },
         )
 
+        # Tag as QTR
+        df["QTR"] = True
+
         return df[pd.notna(df["Date"])]
 
     def _decrypt_workbook(self, filepath: str, password: str) -> io.BytesIO:

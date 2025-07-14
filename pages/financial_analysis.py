@@ -11,7 +11,8 @@ oz_to_gram = lambda x: x * (3.6725 / 31.1034768)
 st.title("Financial Analysis")
 
 # ----- OPTIONS ----- #
-toggle = st.sidebar.toggle("Convert Gold Gains to Cash", value=True)
+convert_gold = st.sidebar.toggle("Convert Gold Gains to Cash", value=True)
+include_qtr = st.sidebar.toggle("Include QTR Data", value=True)
 gold_rate = st.sidebar.number_input(
     "Gold Rate ($/ounce)", min_value=0.0, value=3348.66, step=1.0
 )
@@ -19,11 +20,14 @@ kwargs = {"gold_rate": oz_to_gram(gold_rate)}
 ignore_salaries = st.sidebar.toggle("Exclude Salaries", value=True)
 
 # ----- DATA ----- #
+sales = ss["sales"].data
+if not include_qtr:
+    sales = sales[sales["QTR"] == False]
 fig = Plots.income_expenses_chart(
     Analytics.income_expenses_data(
-        ss["sales"].data, ss["cashbook"].cashbook, ss["cashbook"].fixed_costs, **kwargs
+        sales, ss["cashbook"].cashbook, ss["cashbook"].fixed_costs, **kwargs
     ),
-    convert_gold=toggle,
+    convert_gold=convert_gold,
 )
 st.plotly_chart(fig, use_container_width=True)
 
