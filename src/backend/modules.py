@@ -1,3 +1,4 @@
+import logging
 from typing import List
 import streamlit as st
 from streamlit import session_state as ss
@@ -110,7 +111,7 @@ class Components:
                 except:
                     pass
 
-        # Section 2.2: Item Making Charges Heatmap and Rolling Purity Performance
+        # Section 0.1: Item Making Charges Heatmap and Rolling Purity Performance
         a, b = st.columns(2)
         with a:
             with st.container(border=True):
@@ -136,8 +137,8 @@ class Components:
                         df, purity=ss.purity_heatmap, normalize=ss.normalize_heatmap
                     )
                     st.plotly_chart(fig, use_container_width=True)
-                except:
-                    pass
+                except Exception as e:
+                    logging.error(f"Error generating heatmap: {e}")
 
         with b:
             with st.container(border=True):
@@ -152,55 +153,60 @@ class Components:
                 fig = Plots.rolling_purity_performance(df, item=ss.item_rolling)
                 st.plotly_chart(fig, use_container_width=True)
 
-        # Section 1: Volume
-        with st.container(border=True):
-            st.header("Volume Analysis")
+        tabs = st.tabs(["Volume Analysis", "Revenue Analysis"])
+        with tabs[0]:
+            # Section 1: Volume
+            with st.container(border=True):
+                st.header("Volume Analysis")
 
-            # Section 1.1: Monthly Sales & Breakdown
-            q, k = st.columns([1, 1])
-            with q:
-                fig2 = Plots.monthwise_sales(
-                    Analytics.monthly_sales_data(df), y="Gross Weight"
-                )
-                st.plotly_chart(fig2, use_container_width=True, key="mg")
-            with k:
-                try:
-                    fig3 = Plots.sales_sunburst(
-                        Analytics.sales_item_sunburst_data(df, on="Gross Weight"),
-                        y="Gross Weight",
+                # Section 1.1: Monthly Sales & Breakdown
+                q, k = st.columns([1, 1])
+                with q:
+                    fig2 = Plots.monthwise_sales(
+                        Analytics.monthly_sales_data(df), y="Gross Weight"
                     )
-                    st.plotly_chart(fig3, use_container_width=True, key="sg")
-                except:
-                    pass
+                    st.plotly_chart(fig2, use_container_width=True, key="mg")
+                with k:
+                    try:
+                        fig3 = Plots.sales_sunburst(
+                            Analytics.sales_item_sunburst_data(df, on="Gross Weight"),
+                            y="Gross Weight",
+                        )
+                        st.plotly_chart(fig3, use_container_width=True, key="sg")
+                    except:
+                        pass
 
-        # Section 2: Revenue
-        with st.container(border=True):
-            st.header("Revenue Analysis")
+        with tabs[1]:
+            # Section 2: Revenue
+            with st.container(border=True):
+                st.header("Revenue Analysis")
 
-            # Section 2.1:  Monthly sales & breakdown
-            q, k = st.columns([1, 1])
-            with q:
-                fig = Plots.monthwise_sales(Analytics.monthly_sales_data(df))
-                st.plotly_chart(fig, use_container_width=True)
-            with k:
-                try:
-                    fig = Plots.sales_sunburst(Analytics.sales_item_sunburst_data(df))
+                # Section 2.1:  Monthly sales & breakdown
+                q, k = st.columns([1, 1])
+                with q:
+                    fig = Plots.monthwise_sales(Analytics.monthly_sales_data(df))
                     st.plotly_chart(fig, use_container_width=True)
-                except:
-                    pass
+                with k:
+                    try:
+                        fig = Plots.sales_sunburst(
+                            Analytics.sales_item_sunburst_data(df)
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    except:
+                        pass
 
-            # Section 2.3: Making Rate Breakdown
-            x, y = st.columns(2)
-            with x:
-                st.subheader("Making Rate by Item")
-                st.dataframe(
-                    Components.sales_agg(df, ["Purity Category", "Item Category"]),
-                    use_container_width=True,
-                )
+                # Section 2.3: Making Rate Breakdown
+                x, y = st.columns(2)
+                with x:
+                    st.subheader("Making Rate by Item")
+                    st.dataframe(
+                        Components.sales_agg(df, ["Purity Category", "Item Category"]),
+                        use_container_width=True,
+                    )
 
-            with y:
-                st.subheader("Making Rate by Purity")
-                st.dataframe(
-                    Components.sales_agg(df, ["Purity Category"]),
-                    use_container_width=True,
-                )
+                with y:
+                    st.subheader("Making Rate by Purity")
+                    st.dataframe(
+                        Components.sales_agg(df, ["Purity Category"]),
+                        use_container_width=True,
+                    )
