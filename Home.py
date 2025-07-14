@@ -21,7 +21,9 @@ if "redirected" not in ss:
     ss["redirected"] = False
 
 present_navigation()
-if "cashbook" not in ss or "sales" not in ss:
+no_upload = "cashbook" not in ss or "sales" not in ss
+if not ss["debug_mode"] and no_upload:
+    logging.info("Data not processed, redirecting to upload page...")
     ss["redirected"] = False
     # Go to upload page
     st.switch_page("pages/upload.py")

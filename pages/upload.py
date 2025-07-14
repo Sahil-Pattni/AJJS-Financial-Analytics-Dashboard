@@ -1,3 +1,4 @@
+import logging
 import streamlit as st
 from streamlit import session_state as ss
 from src.readers.cashbook import CashbookReader
@@ -32,9 +33,9 @@ def show_uploaders():
 
 
 def main():
-    debug = st.toggle("Debug Mode", value=False)
+    ss["debug_mode"] = st.toggle("Debug Mode", value=False)
     button = st.button("Process Data")
-    if not debug:
+    if not ss["debug_mode"]:
         cashbook, wingold, qtr = show_uploaders()
 
         if not cashbook or not wingold:
@@ -43,7 +44,7 @@ def main():
     elif not button:
         st.stop()
     elif button:
-        if not debug:
+        if not ss["debug_mode"]:
             with st.spinner("Saving files..."):
                 with open("data/uploaded/cashbook.xlsx", "wb") as f:
                     f.write(cashbook.getbuffer())
@@ -80,12 +81,13 @@ def main():
         sales.add_data(wingold.sales, mapping=wingold_mapping)
 
         # Add sales data from QTR
-        if debug or qtr:
+        if ss["debug_mode"] or qtr:
             qtr = QTRReader("data/uploaded/qtr.xls")
             sales.add_data(qtr.data)
 
         # Set sales
         ss["sales"] = sales
+        logging.info(f"Upload State: {ss['debug_mode']}")
         st.switch_page("pages/sales_overview.py")
 
 

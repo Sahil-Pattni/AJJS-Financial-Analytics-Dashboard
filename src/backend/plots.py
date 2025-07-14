@@ -63,7 +63,7 @@ class Plots:
             color="Direction",
             color_discrete_map={
                 "Net Profit": Color.GREEN1.value,
-                "Net Loss": Color.RED.value,
+                "Net Loss": Color.DARK_RED.value,
             },
             text="Profit",
             title="Monthly Profit and Loss",
@@ -109,7 +109,11 @@ class Plots:
                 + monthly_data["Total Cost"]
             )
         )
-        avg = profit.mean()
+
+        # Ignore this month if not complete
+        month = datetime.now().strftime("%Y-%m")
+        latest_month = monthly_data.index[-1].strftime("%Y-%m")
+        avg = profit.mean() if month != latest_month else profit[:-1].mean()
 
         # ----- Plotting ----- #
         fig = go.Figure()
