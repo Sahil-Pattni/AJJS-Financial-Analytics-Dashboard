@@ -46,38 +46,7 @@ class Components:
         """
         Generate sidebar settings for the sales analytics page.
         """
-        with st.sidebar.container(border=True):
-            st.subheader("Item Weight Distribution")
-            st.selectbox(
-                "Select Item",
-                df["Item Category"].unique().tolist() + ["None"],
-                index=0,
-                key="item",
-                help="Select an item to view its weight distribution.",
-            )
-
-            st.selectbox(
-                "Select Purity",
-                ["None"] + df["Purity Category"].unique().tolist(),
-                index=0,
-                key="purity",
-                help="Select a purity category to filter the weight distribution.",
-            )
-            st.slider(
-                "Number of Bins",
-                min_value=10,
-                value=50,
-                step=5,
-                key="nbins",
-                help="Select the number of bins for the histogram.",
-            )
-
-            st.toggle(
-                "Normalize Histogram",
-                value=False,
-                key="normalize",
-                help="Check to normalize the histogram to show percentages.",
-            )
+        st.sidebar.toggle("Include QTR Data", value=True, key="include_qtr")
 
     @staticmethod
     def __monthly_metric(df: pd.DataFrame, col: str, unit: str) -> None:
@@ -112,6 +81,9 @@ class Components:
         """
         # Generate the settings
         Components.sidebar_settings(df)
+
+        if not ss["include_qtr"]:
+            df = df[df["QTR"] == False]
 
         # Section 0: Key Metrics
         with st.container(border=True):
@@ -200,12 +172,6 @@ class Components:
                     st.plotly_chart(fig3, use_container_width=True, key="sg")
                 except:
                     pass
-
-            # Section 1.2: Weekly Volume
-            # q, k = st.columns([1, 1])
-            # with q:
-            #     fig = Plots.sales_histogram(df)
-            #     st.plotly_chart(fig, use_container_width=True)
 
         # Section 2: Revenue
         with st.container(border=True):
