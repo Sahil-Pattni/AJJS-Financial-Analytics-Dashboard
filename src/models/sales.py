@@ -120,15 +120,20 @@ class Sales:
 
         # Codes and Categories
         df["Item Code"] = df["Item Code"].str.upper()
-        df["Item Category"] = df["Item Code"].str.extract(r"\d{2}(\w+)")
+        df["Item Category"] = df["Item Code"].str.extract(r"\d{0,2}(\w+)")
         df["Item Category"] = df["Item Category"].map(
             {
                 "BRA": "Bracelets",
                 "CHA": "Chains",
+                "C": "Chains",
+                "CHAHA": "Chains",
                 "BAN": "Bangles",
                 "RIN": "Rings",
+                "RING": "Rings",
                 "PEN": "Pendants",
+                "PSET": "Pendants",
                 "UNCAT": "Uncategorized",
+                "UNK": "Uncategorized",
             }
         )
 

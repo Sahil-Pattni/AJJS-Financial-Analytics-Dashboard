@@ -15,6 +15,11 @@ COLOR_C = "#dedb18"  # 21K
 sales = ss["sales"].data
 cb = ss["cashbook"].cashbook
 
+# Get volume pct
+vol = sales.groupby("Purity Category").agg({"Gross Weight": "sum"}).reset_index()
+vol["Percent"] = round(vol["Gross Weight"] / vol["Gross Weight"].sum(), 2)
+vol
+
 
 def karat_settings(karat: str, value=0.3) -> None:
     """
@@ -30,7 +35,7 @@ def karat_settings(karat: str, value=0.3) -> None:
             f"{karat}K Share of Volume",
             min_value=0.0,
             max_value=1.0,
-            step=0.01,
+            step=0.001,
             value=value,
             key=f"share_{karat}k",
         )
@@ -48,9 +53,15 @@ def karat_settings(karat: str, value=0.3) -> None:
 with st.sidebar:
     with st.container(border=True):
         st.markdown("### Simulation Settings")
-        karat_settings("18", value=0.29)
-        karat_settings("22", value=0.69)
-        karat_settings("21", value=0.02)
+        karat_settings(
+            "18", value=vol[vol["Purity Category"] == "18K"]["Percent"].values[0]
+        )
+        karat_settings(
+            "22", value=vol[vol["Purity Category"] == "22K"]["Percent"].values[0]
+        )
+        karat_settings(
+            "21", value=vol[vol["Purity Category"] == "21K"]["Percent"].values[0]
+        )
 
         # Universal settings
         cost_per_gram = st.number_input(
