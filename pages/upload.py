@@ -32,57 +32,61 @@ def show_uploaders():
 
 
 def main():
-    cashbook, wingold, qtr = show_uploaders()
+    debug = st.toggle("Debug Mode", value=False)
     button = st.button("Process Data")
-    if not cashbook or not wingold:
-        st.warning("Please upload your cashbook and Wingold files.")
-        st.stop()
+    if not debug:
+        cashbook, wingold, qtr = show_uploaders()
+
+        if not cashbook or not wingold:
+            st.warning("Please upload your cashbook and Wingold files.")
+            st.stop()
     elif not button:
         st.stop()
     elif button:
-        with st.spinner("Saving files..."):
-            with open("data/uploaded/cashbook.xlsx", "wb") as f:
-                f.write(cashbook.getbuffer())
-            with open("data/uploaded/wingold.mdb", "wb") as f:
-                f.write(wingold.getbuffer())
+        if not debug:
+            with st.spinner("Saving files..."):
+                with open("data/uploaded/cashbook.xlsx", "wb") as f:
+                    f.write(cashbook.getbuffer())
+                with open("data/uploaded/wingold.mdb", "wb") as f:
+                    f.write(wingold.getbuffer())
 
-        with st.spinner("Processing data..."):
-            # Set cashbook data
-            ss["cashbook"] = CashbookReader(
-                "data/uploaded/cashbook.xlsx",
-                "data/static/expense_categories.json",
-                "data/static/income_categories.json",
-                "data/static/fixed_costs.json",
-                only_this_year=True,
-            )
+            with st.spinner("Processing data..."):
+                # Set cashbook data
+                ss["cashbook"] = CashbookReader(
+                    "data/uploaded/cashbook.xlsx",
+                    "data/static/expense_categories.json",
+                    "data/static/income_categories.json",
+                    "data/static/fixed_costs.json",
+                    only_this_year=True,
+                )
 
-            # Extract all sales data
-            wingold = WingoldReader("data/uploaded/wingold.mdb")
+        # Extract all sales data
+        wingold = WingoldReader("data/uploaded/wingold.mdb")
 
-            sales = Sales()
-            # Add sales data from WinGold
-            wingold_mapping = {
-                "DocNumber": "Invoice Number",
-                "DocDate": "Date",
-                "TAName": "Customer",
-                "ItemCode": "Item Code",
-                "Purity": "Purity",
-                "QtyInPcs": "Unit Quantity",
-                "GrossWt": "Gross Weight",
-                "PureWt": "Pure Weight",
-                "MakingRt": "Making Rate",
-                "MakingValue": "Making Value",
-            }
-            sales.add_data(wingold.sales, mapping=wingold_mapping)
+        sales = Sales()
+        # Add sales data from WinGold
+        wingold_mapping = {
+            "DocNumber": "Invoice Number",
+            "DocDate": "Date",
+            "TAName": "Customer",
+            "ItemCode": "Item Code",
+            "Purity": "Purity",
+            "QtyInPcs": "Unit Quantity",
+            "GrossWt": "Gross Weight",
+            "PureWt": "Pure Weight",
+            "MakingRt": "Making Rate",
+            "MakingValue": "Making Value",
+        }
+        sales.add_data(wingold.sales, mapping=wingold_mapping)
 
-            # Add sales data from QTR
-            if qtr:
-                qtr = QTRReader("data/uploaded/qtr.xls")
-                sales.add_data(qtr.data)
+        # Add sales data from QTR
+        if debug or qtr:
+            qtr = QTRReader("data/uploaded/qtr.xls")
+            sales.add_data(qtr.data)
 
-            # Set sales
-            ss["sales"] = sales
-            st.switch_page("pages/sales_overview.py")
+        # Set sales
+        ss["sales"] = sales
+        st.switch_page("pages/sales_overview.py")
 
 
 if __name__ == "__main__":
