@@ -128,6 +128,7 @@ class Sales:
                 "BAN": "Bangles",
                 "RIN": "Rings",
                 "PEN": "Pendants",
+                "UNCAT": "Uncategorized",
             }
         )
 

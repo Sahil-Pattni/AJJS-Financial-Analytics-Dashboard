@@ -77,15 +77,7 @@ def main():
             sales.add_data(wingold.sales, mapping=wingold_mapping)
 
             # Add sales data from QTR
-            qtr_mapping = {
-                "Voucher": "Invoice Number",
-                "Date": "Date",
-                "Account": "Customer",
-                "Weight": "Gross Weight",
-                "Pure": "Pure Weight",
-                "M-Charge": "Making Value",
-            }
-            sales.add_data(qtr.data, mapping=qtr_mapping)
+            sales.add_data(qtr.data)
 
             # Set sales
             ss["sales"] = sales
