@@ -1,3 +1,4 @@
+from typing import List
 import streamlit as st
 from streamlit import session_state as ss
 import pandas as pd
@@ -9,7 +10,7 @@ from datetime import datetime
 
 class Components:
     @staticmethod
-    def sales_agg(df: pd.DataFrame, colname: str) -> pd.DataFrame:
+    def sales_agg(df: pd.DataFrame, colnames: List[str]) -> pd.DataFrame:
         """
         Generate a summary DataFrame for sales aggregation based on the specified column name.
 
@@ -21,29 +22,19 @@ class Components:
             pd.DataFrame: A styled DataFrame with aggregated sales data.
         """
         return (
-            df.groupby(colname)
+            df.groupby(colnames)
             .agg(
                 {
                     "Gross Weight": "sum",
-                    "Pure Weight": "sum",
                     "Making Rate": "mean",
                     "Making Value": "sum",
                 }
             )
             .sort_values(by="Making Value", ascending=False)
             # Rename cols
-            .rename(
-                columns={
-                    "Gross Weight": "Gross Weight",
-                    "Pure Weight": "Pure Weight",
-                    "Making Rate": "Making Rate",
-                    "Making Value": "Making Value",
-                }
-            )
             .style.format(
                 {
                     "Gross Weight": "{:,.2f} g",
-                    "Pure Weight": "{:,.2f} g",
                     "Making Rate": "{:,.2f} AED/g",
                     "Making Value": "{:,.2f} AED",
                 }
@@ -211,10 +202,10 @@ class Components:
                     pass
 
             # Section 1.2: Weekly Volume
-            q, k = st.columns([1, 1])
-            with q:
-                fig = Plots.sales_histogram(df)
-                st.plotly_chart(fig, use_container_width=True)
+            # q, k = st.columns([1, 1])
+            # with q:
+            #     fig = Plots.sales_histogram(df)
+            #     st.plotly_chart(fig, use_container_width=True)
 
         # Section 2: Revenue
         with st.container(border=True):
@@ -237,12 +228,13 @@ class Components:
             with x:
                 st.subheader("Making Rate by Item")
                 st.dataframe(
-                    Components.sales_agg(df, "Item Code"), use_container_width=True
+                    Components.sales_agg(df, ["Purity Category", "Item Category"]),
+                    use_container_width=True,
                 )
 
             with y:
                 st.subheader("Making Rate by Purity")
                 st.dataframe(
-                    Components.sales_agg(df, "Purity Category"),
+                    Components.sales_agg(df, ["Purity Category"]),
                     use_container_width=True,
                 )

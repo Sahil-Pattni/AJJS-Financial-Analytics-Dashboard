@@ -34,6 +34,63 @@ class Color(Enum):
 class Plots:
 
     @staticmethod
+    def profit_loss_barchart(monthly_data: pd.DataFrame, convert_gold=False) -> None:
+        """
+        Generates a profit and loss bar chart using Streamlit.
+
+        Args:
+            monthly_data (pd.DataFrame): DataFrame containing monthly income and expenses.
+            convert_gold (bool): Whether to convert gold gains to cash. Defaults to False.
+        """
+
+        # ----- Plotting ----- #
+        df = monthly_data.copy()
+        df["Profit"] = (
+            monthly_data["Net Profit"]
+            if not convert_gold
+            else (
+                (monthly_data["Total Income"] + monthly_data["Gold Gains"])
+                + monthly_data["Total Cost"]
+            )
+        )
+        df["Direction"] = df["Profit"].apply(
+            lambda x: "Net Profit" if x >= 0 else "Net Loss"
+        )
+
+        fig = px.bar(
+            df,
+            y="Profit",
+            color="Direction",
+            color_discrete_map={
+                "Net Profit": Color.GREEN1.value,
+                "Net Loss": Color.RED.value,
+            },
+            text="Profit",
+            title="Monthly Profit and Loss",
+            labels={"Profit": "Profit/Loss (AED)"},
+        )
+        fig.update_traces(texttemplate="%{text:,.2f} AED", textposition="outside")
+
+        ymax = max(
+            (df["Profit"].max()) * 1.3,
+            30000,
+        )
+        ymin = min(df["Profit"].min() * 1.3, -150000)
+        fig.update_layout(
+            xaxis_title="Month",
+            yaxis_title="Profit/Loss (AED)",
+            yaxis=dict(tickprefix="AED ", range=[ymin, ymax]),
+            xaxis=dict(tickformat="%b %Y"),
+            height=600,
+            width=800,
+        )
+        fig.update_xaxes(automargin=True)
+        fig.update_yaxes(title_standoff=30, automargin=True)
+
+        # Present chart
+        return fig
+
+    @staticmethod
     def income_expenses_chart(monthly_data: pd.DataFrame, convert_gold=False) -> None:
         """
         Generates an income and expenses chart using Streamlit.

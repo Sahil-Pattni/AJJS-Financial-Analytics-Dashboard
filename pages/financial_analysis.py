@@ -23,13 +23,23 @@ ignore_salaries = st.sidebar.toggle("Exclude Salaries", value=True)
 sales = ss["sales"].data
 if not include_qtr:
     sales = sales[sales["QTR"] == False]
-fig = Plots.income_expenses_chart(
-    Analytics.income_expenses_data(
-        sales, ss["cashbook"].cashbook, ss["cashbook"].fixed_costs, **kwargs
-    ),
-    convert_gold=convert_gold,
+
+tabs = st.tabs(["Income/Expenses", "Profit/Loss"])
+financial_data = Analytics.income_expenses_data(
+    sales, ss["cashbook"].cashbook, ss["cashbook"].fixed_costs, **kwargs
 )
-st.plotly_chart(fig, use_container_width=True)
+with tabs[0]:
+    fig = Plots.income_expenses_chart(
+        financial_data,
+        convert_gold=convert_gold,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+with tabs[1]:
+    fig = Plots.profit_loss_barchart(
+        financial_data,
+        convert_gold=convert_gold,
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 p, q = st.columns(2)
 with p:

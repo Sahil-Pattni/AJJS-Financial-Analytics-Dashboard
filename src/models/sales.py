@@ -137,6 +137,10 @@ class Sales:
             }
         )
 
+        # Remove Uncategorized items if none exist
+        if df[df["Item Category"] == "Uncategorized"].empty:
+            df = df[df["Item Category"] != "Uncategorized"].copy()
+
         # Edge case: Drop 0.995
         df = df[df["Purity"] != 0.995].copy()
 
